@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-title" content="Zkušební jízdy">
 <meta name="theme-color" content="#0b1120">
 <title>Zkušební jízdy</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;background:#0b1120;color:#e4eaf4;min-height:100vh;min-height:100dvh;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top)}
@@ -20,6 +19,7 @@ button{font-family:inherit;cursor:pointer}
 
 .toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#182845;color:#00e0a0;border:1px solid #00e0a0;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:100;box-shadow:0 4px 24px rgba(0,224,160,.15);white-space:nowrap;animation:fadeIn .3s ease;display:none}
 .toast.show{display:block}
+.toast.warn{color:#ff4d6a;border-color:#ff4d6a}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
@@ -70,7 +70,6 @@ button{font-family:inherit;cursor:pointer}
 .card-time{font-size:12px;color:#6b7fa0}
 .card-dur{font-size:11px;font-weight:700;color:#00e0a0;background:rgba(0,224,160,.1);padding:2px 8px;border-radius:4px}
 
-/* Scanner overlay */
 #scanView{display:none;position:fixed;inset:0;background:#0b1120;z-index:50;flex-direction:column}
 #scanView.show{display:flex}
 .scan-header{padding:10px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e3355;background:#121d33}
@@ -87,11 +86,11 @@ button{font-family:inherit;cursor:pointer}
 .sc-bl{bottom:0;left:0;border-bottom:3px solid #00e0a0;border-left:3px solid #00e0a0;border-radius:0 0 0 4px}
 .sc-br{bottom:0;right:0;border-bottom:3px solid #00e0a0;border-right:3px solid #00e0a0;border-radius:0 0 4px 0}
 .scan-status{font-size:14px;color:#6b7fa0}
+.scan-debug{font-size:11px;color:#4a5568;margin-top:4px}
 </style>
 </head>
 <body>
 
-<!-- MAIN -->
 <div id="mainView">
   <div class="header">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e0a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 5h3v4h-2"/><path d="M5 12h12"/></svg>
@@ -106,7 +105,6 @@ button{font-family:inherit;cursor:pointer}
       </div>
       <button class="btn-end" onclick="endRide()">Ukončit</button>
     </div>
-
     <div class="btn-row">
       <button id="bCar" class="btn-scan" onclick="openScan('car')">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 5h3v4h-2"/><path d="M5 12h12"/></svg>
@@ -117,13 +115,11 @@ button{font-family:inherit;cursor:pointer}
         <span>Sken zákazník</span>
       </button>
     </div>
-
     <div id="manualToggle" class="manual-toggle">
       <button class="link-btn" onclick="showManual('car')">✏️ Ručně auto</button>
       <span style="color:#1e3355;font-size:13px">|</span>
       <button id="manCustBtn" class="link-btn off" onclick="showManual('customer')">✏️ Ručně zákazník</button>
     </div>
-
     <div id="manualBar" class="manual-bar">
       <div id="manualLabel" class="manual-label"></div>
       <div class="manual-row">
@@ -132,7 +128,6 @@ button{font-family:inherit;cursor:pointer}
         <button class="btn-ghost" onclick="hideManual()">✕</button>
       </div>
     </div>
-
     <div class="log-header">
       <span id="logCount" class="log-title">Log (0)</span>
       <button id="btnClear" class="btn-danger" onclick="clearAll()">Smazat vše</button>
@@ -141,7 +136,6 @@ button{font-family:inherit;cursor:pointer}
   </div>
 </div>
 
-<!-- SCANNER -->
 <div id="scanView">
   <div class="scan-header">
     <span id="scanTitle" class="scan-label" style="font-size:14px"></span>
@@ -151,55 +145,65 @@ button{font-family:inherit;cursor:pointer}
   <div class="scan-body">
     <div id="scanLbl" class="scan-label"></div>
     <div class="video-wrap">
-      <video id="vid" playsinline muted></video>
+      <video id="vid" playsinline muted autoplay></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
       <div class="scan-ol">
         <div class="sc sc-tl"></div><div class="sc sc-tr"></div>
         <div class="sc sc-bl"></div><div class="sc sc-br"></div>
       </div>
     </div>
     <div id="scanStatus" class="scan-status"></div>
+    <div id="scanDebug" class="scan-debug"></div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
+<!-- Use BarcodeDetector API (native on iOS Safari 15.4+) with jsQR fallback -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
 const K="td-rides-v2";
 let rides=[], scanMode=null, stream=null, raf=null, manType=null;
-const cv=document.createElement("canvas"), cx=cv.getContext("2d",{willReadFrequently:true});
+let detector=null; // BarcodeDetector
+let scanCount=0;
+
+// Try native BarcodeDetector first (much better on iOS)
+try {
+  if('BarcodeDetector' in window) {
+    detector = new BarcodeDetector({formats:['qr_code']});
+    console.log("Using native BarcodeDetector");
+  }
+} catch(e){ console.log("BarcodeDetector not available, using jsQR"); }
 
 function load(){try{rides=JSON.parse(localStorage.getItem(K)||"[]")}catch{rides=[]}}
 function save(){localStorage.setItem(K,JSON.stringify(rides))}
 function active(){return rides.find(r=>!r.endTime)}
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
-function fT(i){if(!i)return"—";return new Date(i).toLocaleString("cs-CZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
+function fT(i){if(!i)return"\u2014";return new Date(i).toLocaleString("cs-CZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
 function fD(i){return new Date(i).toLocaleDateString("cs-CZ",{day:"numeric",month:"numeric",year:"numeric"})}
 function dur(s,e){if(!s||!e)return"";const ms=new Date(e)-new Date(s),m=Math.floor(ms/60000),sec=Math.floor((ms%60000)/1000);return m>0?m+" min "+sec+" s":sec+" s"}
 
 let toastT;
-function flash(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2800)}
+function flash(m,warn){const t=document.getElementById("toast");t.textContent=m;t.className="toast show"+(warn?" warn":"");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2800)}
 
 function render(){
   const a=active();
   const bn=document.getElementById("banner");
   if(a){bn.classList.add("show");document.getElementById("bannerCar").textContent=a.car;
-    let d="Od "+fT(a.startTime);if(a.customers.length)d+=" · "+a.customers.map(c=>c.name).join(", ");
+    let d="Od "+fT(a.startTime);if(a.customers.length)d+=" \u00B7 "+a.customers.map(c=>c.name).join(", ");
     document.getElementById("bannerDetail").textContent=d;
   }else bn.classList.remove("show");
-
   const bc=document.getElementById("bCust"),mc=document.getElementById("manCustBtn");
   if(a){bc.classList.remove("off");mc.classList.remove("off")}else{bc.classList.add("off");mc.classList.add("off")}
-
   document.getElementById("logCount").textContent="Log ("+rides.length+")";
   const cl=document.getElementById("btnClear");rides.length>0?cl.classList.add("show"):cl.classList.remove("show");
-
   const ll=document.getElementById("logList");
   if(!rides.length){ll.innerHTML='<div class="empty">Zatím žádné záznamy</div>';return}
   ll.innerHTML=rides.map(r=>{
     const act=!r.endTime;
     const custs=r.customers.length===0?'<span class="no-cust">žádný zákazník</span>':r.customers.map(c=>'<span class="chip">'+esc(c.name)+'</span>').join("");
     const d=r.endTime?'<span class="card-dur">'+dur(r.startTime,r.endTime)+'</span>':"";
-    return'<div class="card'+(act?" active":"")+'"><div class="card-top"><div class="card-car">'+esc(r.car)+'</div><button class="btn-x" onclick="del('+r.id+')">✕</button></div><div class="card-customers">'+custs+'</div><div class="card-bottom"><span class="card-time">'+fD(r.startTime)+' · '+fT(r.startTime)+' → '+(r.endTime?fT(r.endTime):'probíhá')+'</span>'+d+'</div></div>';
+    return'<div class="card'+(act?" active":"")+'"><div class="card-top"><div class="card-car">'+esc(r.car)+'</div><button class="btn-x" onclick="del('+r.id+')">✕</button></div><div class="card-customers">'+custs+'</div><div class="card-bottom"><span class="card-time">'+fD(r.startTime)+' \u00B7 '+fT(r.startTime)+' \u2192 '+(r.endTime?fT(r.endTime):'probíhá')+'</span>'+d+'</div></div>';
   }).join("");
 }
 
@@ -208,69 +212,122 @@ function handleCar(data){
   const ai=rides.findIndex(r=>!r.endTime);
   if(ai!==-1)rides[ai].endTime=now;
   rides.unshift({id:Date.now(),car:data,customers:[],startTime:now,endTime:null});
-  save();render();flash("🚗 "+data+" — jízda zahájena");
+  save();render();flash("\u{1F697} "+data+" — jízda zahájena");
 }
 function handleCust(data){
-  const a=active();if(!a){flash("⚠ Nejprve naskenujte vozidlo");return}
+  const a=active();if(!a){flash("\u26A0 Nejprve naskenujte vozidlo",true);return}
   a.customers.push({name:data,time:new Date().toISOString()});
-  save();render();flash("👤 "+data+" přidán/a");
+  save();render();flash("\u{1F464} "+data+" přidán/a");
 }
-function endRide(){const a=active();if(!a)return;a.endTime=new Date().toISOString();save();render();flash("✓ Jízda ukončena")}
+function endRide(){const a=active();if(!a)return;a.endTime=new Date().toISOString();save();render();flash("\u2713 Jízda ukončena")}
 function del(id){rides=rides.filter(r=>r.id!==id);save();render()}
 function clearAll(){if(confirm("Smazat celý log?")){rides=[];save();render()}}
 
-// Manual
 function showManual(t){
   if(t==="customer"&&!active())return;
-  manType=t;
-  document.getElementById("manualToggle").style.display="none";
+  manType=t;document.getElementById("manualToggle").style.display="none";
   const b=document.getElementById("manualBar");b.classList.add("show");
-  document.getElementById("manualLabel").textContent=t==="car"?"✏️ Zadejte vozidlo":"✏️ Zadejte zákazníka";
+  document.getElementById("manualLabel").textContent=t==="car"?"\u270F\uFE0F Zadejte vozidlo":"\u270F\uFE0F Zadejte zákazníka";
   const inp=document.getElementById("manualInput");
   inp.placeholder=t==="car"?"např. EQE 350 4MATIC EL499DX":"např. Jan Novák";
   inp.value="";inp.focus();
 }
-function hideManual(){
-  manType=null;
-  document.getElementById("manualBar").classList.remove("show");
-  document.getElementById("manualToggle").style.display="";
-}
-function submitManual(){
-  const v=document.getElementById("manualInput").value.trim();if(!v)return;
-  if(manType==="car")handleCar(v);else handleCust(v);
-  hideManual();
-}
+function hideManual(){manType=null;document.getElementById("manualBar").classList.remove("show");document.getElementById("manualToggle").style.display=""}
+function submitManual(){const v=document.getElementById("manualInput").value.trim();if(!v)return;if(manType==="car")handleCar(v);else handleCust(v);hideManual()}
 
-// Scanner
+// ── Scanner with BarcodeDetector (native iOS) + jsQR fallback ──
 function openScan(mode){
   if(mode==="customer"&&!active())return;
-  scanMode=mode;
+  scanMode=mode; scanCount=0;
   document.getElementById("scanView").classList.add("show");
   document.getElementById("scanTitle").textContent=mode==="car"?"Sken vozidla":"Sken zákazníka";
   document.getElementById("scanLbl").textContent=mode==="car"?"Skenujte QR vozidla":"Skenujte QR zákazníka";
   document.getElementById("scanStatus").textContent="Spouštím kameru…";
+  document.getElementById("scanDebug").textContent=detector?"(BarcodeDetector)":"(jsQR)";
   const cf=document.getElementById("scanConfirm");
-  if(mode==="customer"){const a=active();cf.innerHTML="✓ Vůz: <strong>"+esc(a.car)+"</strong>";cf.classList.add("show")}
+  if(mode==="customer"){const a=active();cf.innerHTML="\u2713 Vůz: <strong>"+esc(a.car)+"</strong>";cf.classList.add("show")}
   else cf.classList.remove("show");
 
-  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:640},height:{ideal:480}}})
-  .then(s=>{stream=s;const v=document.getElementById("vid");v.srcObject=s;v.play().then(()=>{document.getElementById("scanStatus").textContent="Namiřte na QR kód";tick()})})
-  .catch(()=>{document.getElementById("scanStatus").textContent="Kamera nedostupná – povolte přístup"});
+  const constraints = {
+    video: {
+      facingMode: "environment",
+      width: {ideal: 1280},
+      height: {ideal: 720}
+    },
+    audio: false
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(s=>{
+    stream=s;
+    const v=document.getElementById("vid");
+    v.srcObject=s;
+    v.setAttribute("playsinline","");
+    v.play().then(()=>{
+      const track=s.getVideoTracks()[0];
+      const settings=track.getSettings();
+      document.getElementById("scanStatus").textContent="Namiřte na QR kód";
+      document.getElementById("scanDebug").textContent=(detector?"BarcodeDetector":"jsQR")+" | "+settings.width+"x"+settings.height;
+      tick();
+    }).catch(e=>{
+      document.getElementById("scanStatus").textContent="Chyba přehrávání: "+e.message;
+    });
+  })
+  .catch(e=>{
+    document.getElementById("scanStatus").textContent="Kamera nedostupná: "+e.message;
+  });
 }
-function tick(){
+
+async function tick(){
   const v=document.getElementById("vid");
   if(!v||v.readyState<2){raf=requestAnimationFrame(tick);return}
-  cv.width=v.videoWidth;cv.height=v.videoHeight;
-  cx.drawImage(v,0,0);
-  const img=cx.getImageData(0,0,cv.width,cv.height);
-  const code=jsQR(img.data,img.width,img.height,{inversionAttempts:"dontInvert"});
-  if(code&&code.data){const d=code.data;closeScan();if(scanMode==="car")handleCar(d);else handleCust(d);return}
+
+  scanCount++;
+
+  // Try native BarcodeDetector first
+  if(detector){
+    try{
+      const codes=await detector.detect(v);
+      if(codes.length>0){
+        const data=codes[0].rawValue;
+        closeScan();
+        if(scanMode==="car")handleCar(data);else handleCust(data);
+        return;
+      }
+    }catch(e){}
+  }
+
+  // Fallback to jsQR
+  if(window.jsQR){
+    const cv=document.getElementById("scanCanvas");
+    const cx=cv.getContext("2d",{willReadFrequently:true});
+    cv.width=v.videoWidth;
+    cv.height=v.videoHeight;
+    cx.drawImage(v,0,0,cv.width,cv.height);
+    try{
+      const img=cx.getImageData(0,0,cv.width,cv.height);
+      const code=jsQR(img.data,img.width,img.height,{inversionAttempts:"attemptBoth"});
+      if(code&&code.data){
+        closeScan();
+        if(scanMode==="car")handleCar(code.data);else handleCust(code.data);
+        return;
+      }
+    }catch(e){}
+  }
+
+  // Update debug counter every 30 frames
+  if(scanCount%30===0){
+    document.getElementById("scanDebug").textContent=(detector?"BarcodeDetector":"jsQR")+" | skenů: "+scanCount;
+  }
+
   raf=requestAnimationFrame(tick);
 }
+
 function closeScan(){
   if(raf){cancelAnimationFrame(raf);raf=null}
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  document.getElementById("vid").srcObject=null;
+  const v=document.getElementById("vid");
+  if(v)v.srcObject=null;
   document.getElementById("scanView").classList.remove("show");
   scanMode=null;
 }
