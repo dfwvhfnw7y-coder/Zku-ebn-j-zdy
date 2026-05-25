@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zkušební jízdy">
+<meta name="theme-color" content="#0b1120">
+<title>Zkušební jízdy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;background:#0b1120;color:#e4eaf4;min-height:100vh;min-height:100dvh;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top)}
+button{font-family:inherit;cursor:pointer}
+
+.header{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #1e3355;background:#121d33;position:sticky;top:0;z-index:10}
+.header svg{margin-right:10px}
+.header-title{font-size:17px;font-weight:700;letter-spacing:-.02em}
+
+.toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#182845;color:#00e0a0;border:1px solid #00e0a0;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:100;box-shadow:0 4px 24px rgba(0,224,160,.15);white-space:nowrap;animation:fadeIn .3s ease;display:none}
+.toast.show{display:block}
+.toast.warn{color:#ff4d6a;border-color:#ff4d6a}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.body{padding:16px 16px 40px}
+
+.banner{display:flex;align-items:center;gap:12px;background:rgba(0,224,160,.15);border:1px solid rgba(0,224,160,.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:none}
+.banner.show{display:flex}
+.banner-dot{color:#ff6b3d;font-size:12px;animation:pulse 1.5s infinite}
+.banner-info{flex:1}
+.banner-car{font-size:15px;font-weight:700;color:#00e0a0}
+.banner-detail{font-size:12px;color:#6b7fa0;margin-top:2px}
+.btn-end{background:rgba(255,75,106,.15);color:#ff4d6a;border:1px solid rgba(255,77,106,.27);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700}
+
+.btn-row{display:flex;gap:10px;margin-bottom:12px}
+.btn-scan{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(145deg,#182845,#121d33);border:1px solid #1e3355;border-radius:12px;padding:22px 10px;color:#00e0a0;font-size:13px;font-weight:700;letter-spacing:.02em;transition:all .15s}
+.btn-scan:active{transform:scale(.96)}
+.btn-scan.off{opacity:.3;pointer-events:none;color:#6b7fa0}
+
+.manual-toggle{display:flex;justify-content:center;gap:8px;margin-bottom:20px;align-items:center}
+.link-btn{background:none;border:none;color:#6b7fa0;font-size:13px;font-weight:600}
+.link-btn.off{opacity:.3;pointer-events:none}
+
+.manual-bar{background:#121d33;border:1px solid #1e3355;border-radius:10px;padding:12px 14px;margin-bottom:16px;display:none}
+.manual-bar.show{display:block}
+.manual-label{font-size:13px;font-weight:700;color:#00e0a0;margin-bottom:8px}
+.manual-row{display:flex;gap:8px}
+.manual-row input{flex:1;background:#0b1120;color:#e4eaf4;border:1px solid #1e3355;border-radius:8px;padding:10px 12px;font-size:16px;outline:none;font-family:inherit}
+.btn-ok{background:#00e0a0;color:#0b1120;border:none;border-radius:8px;padding:0 16px;font-weight:700;font-size:14px}
+.btn-ghost{background:none;border:1px solid #1e3355;color:#6b7fa0;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600}
+
+.log-header{display:flex;justify-content:space-between;align-items:center;margin:8px 0 10px}
+.log-title{font-size:13px;font-weight:700;color:#6b7fa0;text-transform:uppercase;letter-spacing:.08em}
+.btn-danger{background:none;border:none;color:#ff4d6a;font-size:11px;font-weight:700;display:none}
+.btn-danger.show{display:inline}
+
+.empty{text-align:center;color:#6b7fa0;font-size:13px;padding:28px 0;border-top:1px solid #1e3355}
+.log-list{display:flex;flex-direction:column;gap:8px}
+
+.card{background:#121d33;border:1px solid #1e3355;border-radius:12px;padding:14px 16px}
+.card.active{border-color:rgba(0,224,160,.27);background:rgba(0,224,160,.15)}
+.card-top{display:flex;justify-content:space-between;align-items:center}
+.card-car{font-size:15px;font-weight:700;color:#00e0a0}
+.btn-x{background:none;border:none;color:#6b7fa0;font-size:14px;padding:2px 6px}
+.card-customers{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{background:#182845;border:1px solid #1e3355;border-radius:6px;padding:3px 10px;font-size:13px;color:#e4eaf4;font-weight:500}
+.no-cust{font-size:12px;color:#6b7fa0;font-style:italic}
+.card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.card-time{font-size:12px;color:#6b7fa0}
+.card-dur{font-size:11px;font-weight:700;color:#00e0a0;background:rgba(0,224,160,.1);padding:2px 8px;border-radius:4px}
+
+#scanView{display:none;position:fixed;inset:0;background:#0b1120;z-index:50;flex-direction:column}
+#scanView.show{display:flex}
+.scan-header{padding:10px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e3355;background:#121d33}
+.scan-confirm{background:rgba(0,224,160,.15);color:#00e0a0;padding:10px 20px;font-size:14px;font-weight:600;display:none}
+.scan-confirm.show{display:block}
+.scan-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+.scan-label{font-size:16px;font-weight:700;color:#00e0a0;text-transform:uppercase;letter-spacing:.04em}
+.video-wrap{position:relative;width:100%;max-width:360px;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#000}
+.video-wrap video{width:100%;height:100%;object-fit:cover}
+.scan-ol{position:absolute;inset:15%;pointer-events:none}
+.sc{position:absolute;width:24px;height:24px}
+.sc-tl{top:0;left:0;border-top:3px solid #00e0a0;border-left:3px solid #00e0a0;border-radius:4px 0 0 0}
+.sc-tr{top:0;right:0;border-top:3px solid #00e0a0;border-right:3px solid #00e0a0;border-radius:0 4px 0 0}
+.sc-bl{bottom:0;left:0;border-bottom:3px solid #00e0a0;border-left:3px solid #00e0a0;border-radius:0 0 0 4px}
+.sc-br{bottom:0;right:0;border-bottom:3px solid #00e0a0;border-right:3px solid #00e0a0;border-radius:0 0 4px 0}
+.scan-status{font-size:14px;color:#6b7fa0}
+.scan-debug{font-size:11px;color:#4a5568;margin-top:4px}
+</style>
+</head>
+<body>
+
+<div id="mainView">
+  <div class="header">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e0a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 5h3v4h-2"/><path d="M5 12h12"/></svg>
+    <span class="header-title">Zkušební jízdy</span>
+  </div>
+  <div class="body">
+    <div id="banner" class="banner">
+      <div class="banner-dot">●</div>
+      <div class="banner-info">
+        <div id="bannerCar" class="banner-car"></div>
+        <div id="bannerDetail" class="banner-detail"></div>
+      </div>
+      <button class="btn-end" onclick="endRide()">Ukončit</button>
+    </div>
+    <div class="btn-row">
+      <button id="bCar" class="btn-scan" onclick="openScan('car')">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 5h3v4h-2"/><path d="M5 12h12"/></svg>
+        <span>Sken auto</span>
+      </button>
+      <button id="bCust" class="btn-scan off" onclick="openScan('customer')">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Sken zákazník</span>
+      </button>
+    </div>
+    <div id="manualToggle" class="manual-toggle">
+      <button class="link-btn" onclick="showManual('car')">✏️ Ručně auto</button>
+      <span style="color:#1e3355;font-size:13px">|</span>
+      <button id="manCustBtn" class="link-btn off" onclick="showManual('customer')">✏️ Ručně zákazník</button>
+    </div>
+    <div id="manualBar" class="manual-bar">
+      <div id="manualLabel" class="manual-label"></div>
+      <div class="manual-row">
+        <input id="manualInput" onkeydown="if(event.key==='Enter')submitManual()">
+        <button class="btn-ok" onclick="submitManual()">OK</button>
+        <button class="btn-ghost" onclick="hideManual()">✕</button>
+      </div>
+    </div>
+    <div class="log-header">
+      <span id="logCount" class="log-title">Log (0)</span>
+      <button id="btnClear" class="btn-danger" onclick="clearAll()">Smazat vše</button>
+    </div>
+    <div id="logList"></div>
+  </div>
+</div>
+
+<div id="scanView">
+  <div class="scan-header">
+    <span id="scanTitle" class="scan-label" style="font-size:14px"></span>
+    <button class="btn-ghost" onclick="closeScan()">Zrušit</button>
+  </div>
+  <div id="scanConfirm" class="scan-confirm"></div>
+  <div class="scan-body">
+    <div id="scanLbl" class="scan-label"></div>
+    <div class="video-wrap">
+      <video id="vid" playsinline muted autoplay></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
+      <div class="scan-ol">
+        <div class="sc sc-tl"></div><div class="sc sc-tr"></div>
+        <div class="sc sc-bl"></div><div class="sc sc-br"></div>
+      </div>
+    </div>
+    <div id="scanStatus" class="scan-status"></div>
+    <div id="scanDebug" class="scan-debug"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Use BarcodeDetector API (native on iOS Safari 15.4+) with jsQR fallback -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+const K="td-rides-v2";
+let rides=[], scanMode=null, stream=null, raf=null, manType=null;
+let detector=null; // BarcodeDetector
+let scanCount=0;
+
+// Try native BarcodeDetector first (much better on iOS)
+try {
+  if('BarcodeDetector' in window) {
+    detector = new BarcodeDetector({formats:['qr_code']});
+    console.log("Using native BarcodeDetector");
+  }
+} catch(e){ console.log("BarcodeDetector not available, using jsQR"); }
+
+function load(){try{rides=JSON.parse(localStorage.getItem(K)||"[]")}catch{rides=[]}}
+function save(){localStorage.setItem(K,JSON.stringify(rides))}
+function active(){return rides.find(r=>!r.endTime)}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function fT(i){if(!i)return"\u2014";return new Date(i).toLocaleString("cs-CZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
+function fD(i){return new Date(i).toLocaleDateString("cs-CZ",{day:"numeric",month:"numeric",year:"numeric"})}
+function dur(s,e){if(!s||!e)return"";const ms=new Date(e)-new Date(s),m=Math.floor(ms/60000),sec=Math.floor((ms%60000)/1000);return m>0?m+" min "+sec+" s":sec+" s"}
+
+let toastT;
+function flash(m,warn){const t=document.getElementById("toast");t.textContent=m;t.className="toast show"+(warn?" warn":"");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2800)}
+
+function render(){
+  const a=active();
+  const bn=document.getElementById("banner");
+  if(a){bn.classList.add("show");document.getElementById("bannerCar").textContent=a.car;
+    let d="Od "+fT(a.startTime);if(a.customers.length)d+=" \u00B7 "+a.customers.map(c=>c.name).join(", ");
+    document.getElementById("bannerDetail").textContent=d;
+  }else bn.classList.remove("show");
+  const bc=document.getElementById("bCust"),mc=document.getElementById("manCustBtn");
+  if(a){bc.classList.remove("off");mc.classList.remove("off")}else{bc.classList.add("off");mc.classList.add("off")}
+  document.getElementById("logCount").textContent="Log ("+rides.length+")";
+  const cl=document.getElementById("btnClear");rides.length>0?cl.classList.add("show"):cl.classList.remove("show");
+  const ll=document.getElementById("logList");
+  if(!rides.length){ll.innerHTML='<div class="empty">Zatím žádné záznamy</div>';return}
+  ll.innerHTML=rides.map(r=>{
+    const act=!r.endTime;
+    const custs=r.customers.length===0?'<span class="no-cust">žádný zákazník</span>':r.customers.map(c=>'<span class="chip">'+esc(c.name)+'</span>').join("");
+    const d=r.endTime?'<span class="card-dur">'+dur(r.startTime,r.endTime)+'</span>':"";
+    return'<div class="card'+(act?" active":"")+'"><div class="card-top"><div class="card-car">'+esc(r.car)+'</div><button class="btn-x" onclick="del('+r.id+')">✕</button></div><div class="card-customers">'+custs+'</div><div class="card-bottom"><span class="card-time">'+fD(r.startTime)+' \u00B7 '+fT(r.startTime)+' \u2192 '+(r.endTime?fT(r.endTime):'probíhá')+'</span>'+d+'</div></div>';
+  }).join("");
+}
+
+function handleCar(data){
+  const now=new Date().toISOString();
+  const ai=rides.findIndex(r=>!r.endTime);
+  if(ai!==-1)rides[ai].endTime=now;
+  rides.unshift({id:Date.now(),car:data,customers:[],startTime:now,endTime:null});
+  save();render();flash("\u{1F697} "+data+" — jízda zahájena");
+}
+function handleCust(data){
+  const a=active();if(!a){flash("\u26A0 Nejprve naskenujte vozidlo",true);return}
+  a.customers.push({name:data,time:new Date().toISOString()});
+  save();render();flash("\u{1F464} "+data+" přidán/a");
+}
+function endRide(){const a=active();if(!a)return;a.endTime=new Date().toISOString();save();render();flash("\u2713 Jízda ukončena")}
+function del(id){rides=rides.filter(r=>r.id!==id);save();render()}
+function clearAll(){if(confirm("Smazat celý log?")){rides=[];save();render()}}
+
+function showManual(t){
+  if(t==="customer"&&!active())return;
+  manType=t;document.getElementById("manualToggle").style.display="none";
+  const b=document.getElementById("manualBar");b.classList.add("show");
+  document.getElementById("manualLabel").textContent=t==="car"?"\u270F\uFE0F Zadejte vozidlo":"\u270F\uFE0F Zadejte zákazníka";
+  const inp=document.getElementById("manualInput");
+  inp.placeholder=t==="car"?"např. EQE 350 4MATIC EL499DX":"např. Jan Novák";
+  inp.value="";inp.focus();
+}
+function hideManual(){manType=null;document.getElementById("manualBar").classList.remove("show");document.getElementById("manualToggle").style.display=""}
+function submitManual(){const v=document.getElementById("manualInput").value.trim();if(!v)return;if(manType==="car")handleCar(v);else handleCust(v);hideManual()}
+
+// ── Scanner with BarcodeDetector (native iOS) + jsQR fallback ──
+function openScan(mode){
+  if(mode==="customer"&&!active())return;
+  scanMode=mode; scanCount=0;
+  document.getElementById("scanView").classList.add("show");
+  document.getElementById("scanTitle").textContent=mode==="car"?"Sken vozidla":"Sken zákazníka";
+  document.getElementById("scanLbl").textContent=mode==="car"?"Skenujte QR vozidla":"Skenujte QR zákazníka";
+  document.getElementById("scanStatus").textContent="Spouštím kameru…";
+  document.getElementById("scanDebug").textContent=detector?"(BarcodeDetector)":"(jsQR)";
+  const cf=document.getElementById("scanConfirm");
+  if(mode==="customer"){const a=active();cf.innerHTML="\u2713 Vůz: <strong>"+esc(a.car)+"</strong>";cf.classList.add("show")}
+  else cf.classList.remove("show");
+
+  const constraints = {
+    video: {
+      facingMode: "environment",
+      width: {ideal: 1280},
+      height: {ideal: 720}
+    },
+    audio: false
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(s=>{
+    stream=s;
+    const v=document.getElementById("vid");
+    v.srcObject=s;
+    v.setAttribute("playsinline","");
+    v.play().then(()=>{
+      const track=s.getVideoTracks()[0];
+      const settings=track.getSettings();
+      document.getElementById("scanStatus").textContent="Namiřte na QR kód";
+      document.getElementById("scanDebug").textContent=(detector?"BarcodeDetector":"jsQR")+" | "+settings.width+"x"+settings.height;
+      tick();
+    }).catch(e=>{
+      document.getElementById("scanStatus").textContent="Chyba přehrávání: "+e.message;
+    });
+  })
+  .catch(e=>{
+    document.getElementById("scanStatus").textContent="Kamera nedostupná: "+e.message;
+  });
+}
+
+async function tick(){
+  const v=document.getElementById("vid");
+  if(!v||v.readyState<2){raf=requestAnimationFrame(tick);return}
+
+  scanCount++;
+
+  // Try native BarcodeDetector first
+  if(detector){
+    try{
+      const codes=await detector.detect(v);
+      if(codes.length>0){
+        const data=codes[0].rawValue;
+        closeScan();
+        if(scanMode==="car")handleCar(data);else handleCust(data);
+        return;
+      }
+    }catch(e){}
+  }
+
+  // Fallback to jsQR
+  if(window.jsQR){
+    const cv=document.getElementById("scanCanvas");
+    const cx=cv.getContext("2d",{willReadFrequently:true});
+    cv.width=v.videoWidth;
+    cv.height=v.videoHeight;
+    cx.drawImage(v,0,0,cv.width,cv.height);
+    try{
+      const img=cx.getImageData(0,0,cv.width,cv.height);
+      const code=jsQR(img.data,img.width,img.height,{inversionAttempts:"attemptBoth"});
+      if(code&&code.data){
+        closeScan();
+        if(scanMode==="car")handleCar(code.data);else handleCust(code.data);
+        return;
+      }
+    }catch(e){}
+  }
+
+  // Update debug counter every 30 frames
+  if(scanCount%30===0){
+    document.getElementById("scanDebug").textContent=(detector?"BarcodeDetector":"jsQR")+" | skenů: "+scanCount;
+  }
+
+  raf=requestAnimationFrame(tick);
+}
+
+function closeScan(){
+  if(raf){cancelAnimationFrame(raf);raf=null}
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  const v=document.getElementById("vid");
+  if(v)v.srcObject=null;
+  document.getElementById("scanView").classList.remove("show");
+  scanMode=null;
+}
+
+load();render();
+</script>
+</body>
+</html>
