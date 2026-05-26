@@ -17,21 +17,33 @@ body{padding-bottom:80px}
 .tab{flex:1;text-align:center;padding:11px 0 9px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:.2s}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .toast{position:fixed;top:110px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--accent);color:var(--accent);padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:200;box-shadow:0 4px 24px rgba(0,201,167,.15);white-space:nowrap;display:none;animation:fadeIn .3s}
-.toast.warn{color:var(--red);border-color:var(--red)}
-.toast.show{display:block}
+.toast.warn{color:var(--red);border-color:var(--red)}.toast.show{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .panel{display:none;padding:16px}.panel.active{display:block}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .card h3{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:var(--radius);font:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
 .btn:active{transform:scale(.97)}
-.btn-accent{background:var(--accent);color:#000}
-.btn-blue{background:var(--blue);color:#fff}
+.btn-accent{background:var(--accent);color:#000}.btn-blue{background:var(--blue);color:#fff}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-red{background:var(--red);color:#fff}
-.btn-sm{padding:10px 16px;font-size:13px;width:auto}
+.btn-red{background:var(--red);color:#fff}.btn-sm{padding:10px 16px;font-size:13px;width:auto}
 .inp{width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:15px;outline:none}
 .inp:focus{border-color:var(--accent)}.inp::placeholder{color:var(--text2)}
+
+/* Scanner */
+.scan-overlay{position:fixed;inset:0;background:#000;z-index:100;display:none;flex-direction:column}
+.scan-overlay.show{display:flex}
+.scan-top{display:flex;align-items:center;padding:12px 16px;background:rgba(0,0,0,.9);z-index:2}
+.scan-top .label{flex:1;text-align:center;font-size:15px;font-weight:700;color:#fff}
+.scan-cancel{background:none;border:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:8px}
+.scan-body{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.scan-body video{width:100%;height:100%;object-fit:cover}
+.scan-guide{position:absolute;width:220px;height:220px;border:3px solid var(--accent);border-radius:16px;box-shadow:0 0 0 4000px rgba(0,0,0,.4);pointer-events:none;z-index:1}
+.scan-guide::before{content:'';position:absolute;inset:-3px;border:3px solid var(--accent);border-radius:16px;animation:sp 2s infinite}
+@keyframes sp{0%,100%{opacity:1}50%{opacity:.3}}
+.scan-foot{padding:10px;text-align:center;background:rgba(0,0,0,.9);color:var(--text2);font-size:12px}
+
+/* Confirm */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
 .confirm-overlay.show{display:flex}
 .confirm-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:360px;width:100%;text-align:center;animation:popIn .25s}
@@ -40,8 +52,7 @@ body{padding-bottom:80px}
 .confirm-box .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
 .confirm-box .value{font-size:22px;font-weight:700;margin-bottom:6px;word-break:break-word}
 .confirm-box .info{font-size:13px;color:var(--text2);margin-bottom:16px}
-.confirm-box .btns{display:flex;gap:10px}
-.confirm-box .btns .btn{flex:1}
+.confirm-box .btns{display:flex;gap:10px}.confirm-box .btns .btn{flex:1}
 .active-tag{display:inline-block;font-size:11px;background:rgba(0,201,167,.15);color:var(--accent);padding:2px 8px;border-radius:20px;margin-top:6px;font-weight:700;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .active-card{background:var(--card);border:2px solid var(--accent);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px}
@@ -51,8 +62,7 @@ body{padding-bottom:80px}
 .active-card .end-btn:active{background:var(--red);color:#fff}
 .ride{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
 .ride .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.ride .car{font-size:16px;font-weight:700}
-.ride .time{font-size:12px;color:var(--text2)}
+.ride .car{font-size:16px;font-weight:700}.ride .time{font-size:12px;color:var(--text2)}
 .ride .customers{font-size:13px;color:var(--text2);line-height:1.6}
 .ride .customers span{color:var(--accent);font-weight:600}
 .ride .dur{display:inline-block;font-size:11px;background:var(--card2);padding:2px 8px;border-radius:20px;margin-top:6px;color:var(--text2)}
@@ -61,31 +71,6 @@ body{padding-bottom:80px}
 .qr-label{font-size:13px;color:var(--text2);margin-top:8px}
 #printArea{display:none}
 @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
-
-/* Scanner overlay */
-.scan-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column}
-.scan-overlay.show{display:flex}
-.scan-top{display:flex;align-items:center;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);z-index:2}
-.scan-top .label{flex:1;text-align:center;font-size:15px;font-weight:700}
-.scan-cancel{background:none;border:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:8px}
-#scanReader{flex:1;width:100%}
-/* Restyle html5-qrcode built-in UI */
-#scanReader video{object-fit:cover!important}
-#scanReader__dashboard_section_csr button{
-  background:var(--accent)!important;color:#000!important;border:none!important;
-  padding:10px 20px!important;border-radius:8px!important;font-weight:700!important;
-  font-size:14px!important;margin:4px!important
-}
-#scanReader__dashboard_section_csr select{
-  background:var(--card2)!important;color:var(--text)!important;border:1px solid var(--border)!important;
-  padding:8px!important;border-radius:8px!important;font-size:14px!important;margin:4px!important
-}
-#scanReader__dashboard_section_csr span,
-#scanReader__dashboard_section_csr a{color:var(--text2)!important;font-size:12px!important}
-#scanReader__dashboard_section_fsr{display:none!important}
-#scanReader__header_message{color:var(--text2)!important;font-size:12px!important}
-#scanReader img[alt="Info"]{display:none!important}
-#scanReader__scan_region{background:#000!important}
 </style>
 </head>
 <body>
@@ -97,16 +82,21 @@ body{padding-bottom:80px}
 </div>
 <div id="toast" class="toast"></div>
 
-<!-- SCANNER OVERLAY -->
+<!-- SCANNER -->
 <div id="scanOverlay" class="scan-overlay">
   <div class="scan-top">
     <button class="scan-cancel" onclick="closeScan()">✕ Zavřít</button>
     <div class="label" id="scanLabel">Skenuj QR</div>
     <div style="width:60px"></div>
   </div>
-  <div id="scanReader"></div>
+  <div class="scan-body">
+    <video id="scanVideo" playsinline autoplay muted></video>
+    <div class="scan-guide"></div>
+  </div>
+  <div class="scan-foot" id="scanFoot">Namiřte QR kód do rámečku</div>
 </div>
 
+<!-- CONFIRM -->
 <div id="confirmOverlay" class="confirm-overlay">
   <div class="confirm-box">
     <div class="icon" id="cfIcon"></div>
@@ -127,8 +117,7 @@ body{padding-bottom:80px}
     <button class="btn btn-blue" onclick="startScan('customer')" style="flex:1">👤 Skenovat zákazníka</button>
   </div>
   <div id="activeSection"></div>
-  <div class="card">
-    <h3>Ruční zadání</h3>
+  <div class="card"><h3>Ruční zadání</h3>
     <div style="margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div>
     <div style="margin-bottom:12px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
     <button class="btn btn-outline" onclick="manualAdd()">Zapsat ručně</button>
@@ -137,25 +126,22 @@ body{padding-bottom:80px}
 
 <!-- TAB: QR -->
 <div id="panelGen" class="panel">
-  <div class="card">
-    <h3>🚗 QR — vozidlo</h3>
-    <input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC AB1C2DE" style="margin-bottom:12px">
+  <div class="card"><h3>🚗 QR — vozidlo</h3>
+    <input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC" style="margin-bottom:12px">
     <button class="btn btn-accent" onclick="generateQR('car')">Vytvořit QR</button>
     <div id="qrCarOutput" style="display:none"><div class="qr-block"><div id="qrCarContainer"></div><div class="qr-label" id="qrCarName"></div></div>
     <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
   </div>
-  <div class="card">
-    <h3>👤 QR — zákazník</h3>
+  <div class="card"><h3>👤 QR — zákazník</h3>
     <input class="inp" id="genCustInput" placeholder="Např. Jan Novák" style="margin-bottom:12px">
     <button class="btn btn-accent" onclick="generateQR('customer')">Vytvořit QR</button>
     <div id="qrCustOutput" style="display:none"><div class="qr-block"><div id="qrCustContainer"></div><div class="qr-label" id="qrCustName"></div></div>
     <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
   </div>
-  <div class="card">
-    <h3>ℹ️ Návod</h3>
+  <div class="card"><h3>ℹ️ Návod</h3>
     <div style="font-size:13px;color:var(--text2);line-height:1.7">
-      <b>V appce:</b> Skenovat → vyber kameru → namiř na QR<br>
-      <b>Fotoaparátem:</b> Namiř na QR → klepni na odkaz<br><br>
+      Skenovat auto/zákazníka → namiř QR do rámečku<br>
+      Fotoaparátem → namiř na QR → klepni na odkaz<br><br>
       Opakovaný sken = ukončí jízdu · Více aut současně
     </div>
   </div>
@@ -170,17 +156,19 @@ body{padding-bottom:80px}
   </div>
   <div id="logList"></div>
 </div>
-
 <div id="printArea"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+<!-- ZXing Browser — direct, no wrapper -->
+<script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
+<!-- QR generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 var BASE_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/index.html";
-var SK="sw-td-v11";
+var SK="sw-td-v12";
 function loadRides(){try{return JSON.parse(localStorage.getItem(SK))||[]}catch(e){return[]}}
 function saveRides(r){try{localStorage.setItem(SK,JSON.stringify(r))}catch(e){}}
-var rides=loadRides(),pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanner=null;
+var rides=loadRides(),pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null;
 
 function switchTab(id){
   var p=['Scan','Gen','Log'],t=['tabScan','tabGen','tabLog'],d=['scan','gen','log'];
@@ -189,15 +177,13 @@ function switchTab(id){
   if(id==='log')renderLog();
 }
 var tt=null;function flash(m,w){var t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(w?' warn':'');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show')},2500)}
-
 function showConfirm(type,value,info,btn){
   document.getElementById('cfIcon').textContent=type==='car'?'🚗':'👤';
   document.getElementById('cfLabel').textContent=type==='car'?'VOZIDLO':'ZÁKAZNÍK';
   document.getElementById('cfValue').textContent=value;
   document.getElementById('cfInfo').textContent=info||'';
   document.getElementById('cfOkBtn').textContent=btn||'Zapsat';
-  pendingConfirm={type:type,value:value};
-  document.getElementById('confirmOverlay').classList.add('show');
+  pendingConfirm={type:type,value:value};document.getElementById('confirmOverlay').classList.add('show');
 }
 function hideConfirm(){document.getElementById('confirmOverlay').classList.remove('show');pendingConfirm=null}
 function confirmAction(){if(!pendingConfirm)return;var t=pendingConfirm.type,v=pendingConfirm.value;hideConfirm();if(t==='car')handleCar(v);else handleCustomer(v)}
@@ -206,10 +192,9 @@ function getActiveRides(){var a=[];for(var i=0;i<rides.length;i++)if(!rides[i].e
 function findRideById(id){for(var i=0;i<rides.length;i++)if(rides[i].id===id)return rides[i];return null}
 function findActiveByCarName(n){var l=n.toLowerCase();for(var i=0;i<rides.length;i++)if(!rides[i].end&&rides[i].car.toLowerCase()===l)return rides[i];return null}
 function findActiveRidesWithCustomer(n){var l=n.toLowerCase(),a=[];for(var i=0;i<rides.length;i++){if(rides[i].end)continue;for(var j=0;j<rides[i].customers.length;j++)if(rides[i].customers[j].toLowerCase()===l){a.push(rides[i]);break}}return a}
-
 function handleCar(name){
   var ex=findActiveByCarName(name);
-  if(ex){ex.end=new Date().toISOString();saveRides(rides);flash('🏁 Jízda ukončena: '+name);renderAll();return}
+  if(ex){ex.end=new Date().toISOString();saveRides(rides);flash('🏁 Ukončena: '+name);renderAll();return}
   var nr={id:Date.now(),car:name,start:new Date().toISOString(),end:null,customers:[]};
   rides.unshift(nr);lastActiveCarId=nr.id;saveRides(rides);flash('🚗 Nová jízda: '+name);renderAll();
 }
@@ -218,72 +203,63 @@ function handleCustomer(name){
   if(cr.length>0){var now=new Date().toISOString();for(var i=0;i<cr.length;i++)cr[i].end=now;saveRides(rides);flash('🏁 Ukončeno: '+name);renderAll();return}
   var act=getActiveRides();if(!act.length){flash('⚠ Nejdřív naskenuj auto!',true);return}
   var tgt=null;if(lastActiveCarId){tgt=findRideById(lastActiveCarId);if(tgt&&tgt.end)tgt=null}
-  if(!tgt)tgt=act[0];
-  tgt.customers.push(name);lastActiveCarId=tgt.id;saveRides(rides);flash('👤 '+name+' → '+tgt.car);renderAll();
+  if(!tgt)tgt=act[0];tgt.customers.push(name);lastActiveCarId=tgt.id;saveRides(rides);flash('👤 '+name+' → '+tgt.car);renderAll();
 }
 function endRide(id){var r=findRideById(id);if(r&&!r.end){r.end=new Date().toISOString();saveRides(rides);flash('🏁 '+r.car);renderAll()}}
 function endAllRides(){var a=getActiveRides();if(!a.length)return;if(!confirm('Ukončit '+a.length+' jízd?'))return;var n=new Date().toISOString();for(var i=0;i<a.length;i++)a[i].end=n;saveRides(rides);flash('Vše ukončeno');renderAll()}
 function manualAdd(){var c=document.getElementById('manualCar').value.trim(),u=document.getElementById('manualCust').value.trim();if(!c&&!u){flash('Zadej vůz/zákazníka',true);return}if(c){handleCar(c);document.getElementById('manualCar').value=''}if(u){handleCustomer(u);document.getElementById('manualCust').value=''}}
-
-function parseQRData(data,mode){
-  try{var u=new URL(data);var p=u.searchParams;if(p.get('car'))return{type:'car',value:p.get('car')};if(p.get('customer'))return{type:'customer',value:p.get('customer')}}catch(e){}
-  return{type:mode,value:data};
-}
-
-function handleScanResult(decodedText){
-  closeScan();
-  var parsed=parseQRData(decodedText,scanMode);
-  var info='',btn='Zapsat';
-  if(parsed.type==='car'){
-    var ex=findActiveByCarName(parsed.value);
-    if(ex){info='Jízda bude UKONČENA';btn='Ukončit'}else{info='Nová jízda'}
-  }else{
-    var cr2=findActiveRidesWithCustomer(parsed.value);
-    if(cr2.length>0){info='Jede v: '+cr2.map(function(r){return r.car}).join(', ')+' → UKONČIT';btn='Ukončit'}
-    else{var a2=getActiveRides();if(!a2.length)info='⚠ Žádné aktivní auto';else{var tg=lastActiveCarId?findRideById(lastActiveCarId):null;if(!tg||tg.end)tg=a2[0];info='→ '+tg.car}}
-  }
-  showConfirm(parsed.type,parsed.value,info,btn);
-}
+function parseQRData(data,mode){try{var u=new URL(data);var p=u.searchParams;if(p.get('car'))return{type:'car',value:p.get('car')};if(p.get('customer'))return{type:'customer',value:p.get('customer')}}catch(e){}return{type:mode,value:data}}
 
 /* ══════════════════════════════════════
-   Html5QrcodeScanner — full UI from library
-   Camera selection, permissions, scanning
-   all handled by the library itself.
+   ZXing Browser — decodeFromConstraints
+   Library handles camera + decoding.
+   No getUserMedia, no canvas, no jsQR.
    ══════════════════════════════════════ */
 function startScan(mode){
   scanMode=mode;
   document.getElementById('scanLabel').textContent=mode==='car'?'🚗 Skenuj QR vozidla':'👤 Skenuj QR zákazníka';
+  document.getElementById('scanFoot').textContent='Spouštím kameru…';
   document.getElementById('scanOverlay').classList.add('show');
 
-  // Clear previous
-  document.getElementById('scanReader').innerHTML='';
+  var codeReader=new ZXingBrowser.BrowserQRCodeReader();
+  var videoEl=document.getElementById('scanVideo');
 
-  scanner=new Html5QrcodeScanner("scanReader",{
-    fps:10,
-    qrbox:250,
-    rememberLastUsedCamera:true,
-    supportedScanTypes:[0], // 0 = SCAN_TYPE_CAMERA only
-    showTorchButtonIfSupported:true,
-    showZoomSliderIfSupported:true,
-    defaultZoomValueIfSupported:2
-  },/* verbose= */false);
-
-  scanner.render(
-    function onSuccess(decodedText,decodedResult){
-      handleScanResult(decodedText);
-    },
-    function onError(errorMessage){
-      // ignore continuous errors
+  codeReader.decodeFromConstraints(
+    {video:{facingMode:'environment'}},
+    videoEl,
+    function(result,error,controls){
+      scanControls=controls;
+      if(result){
+        controls.stop();
+        scanControls=null;
+        document.getElementById('scanOverlay').classList.remove('show');
+        var parsed=parseQRData(result.getText(),scanMode);
+        var info='',btn='Zapsat';
+        if(parsed.type==='car'){
+          var ex=findActiveByCarName(parsed.value);
+          if(ex){info='Jízda bude UKONČENA';btn='Ukončit'}else{info='Nová jízda'}
+        }else{
+          var cr2=findActiveRidesWithCustomer(parsed.value);
+          if(cr2.length>0){info='Jede v: '+cr2.map(function(r){return r.car}).join(', ')+' → UKONČIT';btn='Ukončit'}
+          else{var a2=getActiveRides();if(!a2.length)info='⚠ Žádné aktivní auto';else{var tg=lastActiveCarId?findRideById(lastActiveCarId):null;if(!tg||tg.end)tg=a2[0];info='→ '+tg.car}}
+        }
+        showConfirm(parsed.type,parsed.value,info,btn);
+      }
+      if(!error){
+        document.getElementById('scanFoot').textContent='Namiřte QR kód do rámečku';
+      }
     }
-  );
+  ).catch(function(err){
+    document.getElementById('scanFoot').textContent='Chyba: '+err.message;
+  });
 }
 
 function closeScan(){
-  if(scanner){
-    try{scanner.clear()}catch(e){}
-    scanner=null;
-  }
-  document.getElementById('scanReader').innerHTML='';
+  if(scanControls){try{scanControls.stop()}catch(e){}}
+  scanControls=null;
+  // Stop any remaining video tracks
+  var v=document.getElementById('scanVideo');
+  if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null}
   document.getElementById('scanOverlay').classList.remove('show');
   scanMode=null;
 }
@@ -340,14 +316,12 @@ function exportLog(){
   for(var i=0;i<rides.length;i++){var r=rides[i];csv+='"'+r.car+'";"'+r.customers.join(', ')+'";"'+fmtTime(r.start)+'";"'+(r.end?fmtTime(r.end):'probíhá')+'";"'+(r.end?fmtDur(r.start,r.end):'')+'";\n'}
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='zkusebni-jizdy-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
-
 function processURL(){
   var p=new URLSearchParams(location.search),car=p.get('car'),cust=p.get('customer');
   if(car||cust)history.replaceState(null,'',location.pathname);
   if(car){var ex=findActiveByCarName(car);showConfirm('car',car,ex?'Jízda bude UKONČENA':'Nová jízda',ex?'Ukončit':'Zapsat')}
   else if(cust){var cr=findActiveRidesWithCustomer(cust);if(cr.length)showConfirm('customer',cust,'Jede v: '+cr.map(function(r){return r.car}).join(', ')+' → UKONČIT','Ukončit');else{var a=getActiveRides();showConfirm('customer',cust,a.length?'→ '+a[0].car:'⚠ Žádné auto','Zapsat')}}
 }
-
 renderAll();processURL();
 </script>
 </body>
