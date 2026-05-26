@@ -73,7 +73,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v25</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v26</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -202,7 +202,7 @@ function loadRidesREST(){
     rides=[];
     if(data){
       var keys=Object.keys(data);
-      for(var i=0;i<keys.length;i++){var r=data[keys[i]];r._key=keys[i];rides.push(r)}
+      for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}
       rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)});
     }
     renderAll();
@@ -223,23 +223,19 @@ function saveRideREST(ride){
    Handle URL params via REST (no SDK dependency)
    ══════════════════════════════════════ */
 if(_hasUrlParams){
-  alert('URL HANDLER: car='+_urlCar+' cust='+_urlCust);
   loadRidesREST().then(function(){
-    alert('REST LOADED: rides='+rides.length+' active='+getActiveRides().length);
     if(_urlCar){
       var ex=findActiveByCarName(_urlCar);
       if(ex){ex.end=new Date().toISOString();saveRideREST(ex);flash('\u{1F3C1} Ukončena: '+_urlCar);loadRidesREST()}
       else{
         var ev=document.getElementById('eventName').value.trim();
         var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev};
-        // DEBUG
-        alert('SAVING: '+JSON.stringify(nr));
         saveRideREST(nr).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} Nová jízda: '+_urlCar);loadRidesREST()});
       }
     } else if(_urlCust){
       showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr);
     }
-  }).catch(function(err){alert('REST ERROR: '+err.message);flash('Chyba: '+err.message,true)});
+  }).catch(function(err){flash('Chyba: '+err.message,true)});
 }
 
 /* ══════════════════════════════════════
@@ -264,7 +260,7 @@ try{
     rides=[];
     if(data){
       var keys=Object.keys(data);
-      for(var i=0;i<keys.length;i++){var r=data[keys[i]];r._key=keys[i];rides.push(r)}
+      for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}
       rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)});
     }
     renderAll();
@@ -345,7 +341,7 @@ function showCustConfirm(name,em,ph,ad){
 /* ── Core ── */
 function getActiveRides(){var a=[];for(var i=0;i<rides.length;i++)if(!rides[i].end)a.push(rides[i]);return a}
 function findRideByKey(k){for(var i=0;i<rides.length;i++)if(rides[i]._key===k)return rides[i];return null}
-function findActiveByCarName(n){var l=n.toLowerCase();for(var i=0;i<rides.length;i++)if(!rides[i].end&&rides[i].car.toLowerCase()===l)return rides[i];return null}
+function findActiveByCarName(n){if(!n)return null;var l=n.toLowerCase();for(var i=0;i<rides.length;i++)if(!rides[i].end&&rides[i].car&&rides[i].car.toLowerCase()===l)return rides[i];return null}
 function custName(c){return typeof c==='string'?c:c.name}
 function findActiveRidesWithCustomer(n){
   var l=n.toLowerCase(),a=[];
