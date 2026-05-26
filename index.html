@@ -195,7 +195,15 @@ document.getElementById('eventName').value=(function(){try{return localStorage.g
 var _p=new URLSearchParams(location.search);
 var _urlCar=_p.get('car'),_urlCust=_p.get('customer');
 var _urlEmail=_p.get('email')||'',_urlPhone=_p.get('phone')||'',_urlAddr=_p.get('addr')||'';
-if(_urlCar||_urlCust)history.replaceState(null,'',location.pathname);
+if(_urlCar||_urlCust){
+  history.replaceState(null,'',location.pathname);
+  // DEBUG banner — visible proof that URL params were captured
+  var dbg=document.createElement('div');
+  dbg.id='debugBanner';
+  dbg.style.cssText='background:red;color:white;padding:10px;text-align:center;font-weight:bold;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:9999';
+  dbg.textContent='URL: car='+((_urlCar)||'null')+' cust='+((_urlCust)||'null');
+  document.body.appendChild(dbg);
+}
 
 /* ══════════════════════════════════════
    FIREBASE REAL-TIME SYNC
