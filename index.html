@@ -23,14 +23,13 @@ body{padding-bottom:80px}
 .panel{display:none;padding:16px}.panel.active{display:block}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .card h3{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:var(--radius);font:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:none;border-radius:var(--radius);font:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
 .btn:active{transform:scale(.97)}
 .btn-accent{background:var(--accent);color:#000}
 .btn-blue{background:var(--blue);color:#fff}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
 .btn-red{background:var(--red);color:#fff}
 .btn-sm{padding:10px 16px;font-size:13px;width:auto}
-.btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:200px}
 .inp{width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:inherit;font-size:15px;outline:none}
 .inp:focus{border-color:var(--accent)}.inp::placeholder{color:var(--text2)}
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
@@ -62,10 +61,31 @@ body{padding-bottom:80px}
 .qr-label{font-size:13px;color:var(--text2);margin-top:8px}
 #printArea{display:none}
 @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
-.scan-processing{text-align:center;padding:20px;color:var(--accent);font-weight:600;display:none}
-.scan-processing.show{display:block}
-/* hidden reader div for html5-qrcode */
-#qrReader{width:1px;height:1px;overflow:hidden;position:absolute;left:-9999px}
+
+/* Scanner overlay */
+.scan-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column}
+.scan-overlay.show{display:flex}
+.scan-top{display:flex;align-items:center;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);z-index:2}
+.scan-top .label{flex:1;text-align:center;font-size:15px;font-weight:700}
+.scan-cancel{background:none;border:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:8px}
+#scanReader{flex:1;width:100%}
+/* Restyle html5-qrcode built-in UI */
+#scanReader video{object-fit:cover!important}
+#scanReader__dashboard_section_csr button{
+  background:var(--accent)!important;color:#000!important;border:none!important;
+  padding:10px 20px!important;border-radius:8px!important;font-weight:700!important;
+  font-size:14px!important;margin:4px!important
+}
+#scanReader__dashboard_section_csr select{
+  background:var(--card2)!important;color:var(--text)!important;border:1px solid var(--border)!important;
+  padding:8px!important;border-radius:8px!important;font-size:14px!important;margin:4px!important
+}
+#scanReader__dashboard_section_csr span,
+#scanReader__dashboard_section_csr a{color:var(--text2)!important;font-size:12px!important}
+#scanReader__dashboard_section_fsr{display:none!important}
+#scanReader__header_message{color:var(--text2)!important;font-size:12px!important}
+#scanReader img[alt="Info"]{display:none!important}
+#scanReader__scan_region{background:#000!important}
 </style>
 </head>
 <body>
@@ -76,6 +96,16 @@ body{padding-bottom:80px}
   <div class="tab" onclick="switchTab('log')" id="tabLog">Historie</div>
 </div>
 <div id="toast" class="toast"></div>
+
+<!-- SCANNER OVERLAY -->
+<div id="scanOverlay" class="scan-overlay">
+  <div class="scan-top">
+    <button class="scan-cancel" onclick="closeScan()">✕ Zavřít</button>
+    <div class="label" id="scanLabel">Skenuj QR</div>
+    <div style="width:60px"></div>
+  </div>
+  <div id="scanReader"></div>
+</div>
 
 <div id="confirmOverlay" class="confirm-overlay">
   <div class="confirm-box">
@@ -90,26 +120,17 @@ body{padding-bottom:80px}
   </div>
 </div>
 
-<!-- Hidden reader for html5-qrcode file scanning -->
-<div id="qrReader"></div>
-
 <!-- TAB: JÍZDY -->
 <div id="panelScan" class="panel active">
-  <!-- SCAN BUTTONS: file input with capture=environment triggers native camera -->
   <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="btn btn-accent" style="flex:1">📷 Skenovat auto
-      <input type="file" accept="image/*" capture="environment" onchange="scanPhoto(this,'car')">
-    </button>
-    <button class="btn btn-blue" style="flex:1">📷 Skenovat zákazníka
-      <input type="file" accept="image/*" capture="environment" onchange="scanPhoto(this,'customer')">
-    </button>
+    <button class="btn btn-accent" onclick="startScan('car')" style="flex:1">🚗 Skenovat auto</button>
+    <button class="btn btn-blue" onclick="startScan('customer')" style="flex:1">👤 Skenovat zákazníka</button>
   </div>
-  <div id="scanProcessing" class="scan-processing">⏳ Dekóduji QR kód…</div>
   <div id="activeSection"></div>
   <div class="card">
     <h3>Ruční zadání</h3>
-    <div style="display:flex;gap:8px;margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div>
-    <div style="display:flex;gap:8px;margin-bottom:12px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
+    <div style="margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div>
+    <div style="margin-bottom:12px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
     <button class="btn btn-outline" onclick="manualAdd()">Zapsat ručně</button>
   </div>
 </div>
@@ -121,22 +142,21 @@ body{padding-bottom:80px}
     <input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC AB1C2DE" style="margin-bottom:12px">
     <button class="btn btn-accent" onclick="generateQR('car')">Vytvořit QR</button>
     <div id="qrCarOutput" style="display:none"><div class="qr-block"><div id="qrCarContainer"></div><div class="qr-label" id="qrCarName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨 Vytisknout</button></div>
+    <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
   </div>
   <div class="card">
     <h3>👤 QR — zákazník</h3>
     <input class="inp" id="genCustInput" placeholder="Např. Jan Novák" style="margin-bottom:12px">
     <button class="btn btn-accent" onclick="generateQR('customer')">Vytvořit QR</button>
     <div id="qrCustOutput" style="display:none"><div class="qr-block"><div id="qrCustContainer"></div><div class="qr-label" id="qrCustName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨 Vytisknout</button></div>
+    <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
   </div>
   <div class="card">
     <h3>ℹ️ Návod</h3>
     <div style="font-size:13px;color:var(--text2);line-height:1.7">
-      <b>V appce:</b> Klepni Skenovat → vyfoť QR → automaticky se dekóduje<br>
+      <b>V appce:</b> Skenovat → vyber kameru → namiř na QR<br>
       <b>Fotoaparátem:</b> Namiř na QR → klepni na odkaz<br><br>
-      Opakovaný sken auta/zákazníka = ukončí jízdu<br>
-      Více aut jede současně
+      Opakovaný sken = ukončí jízdu · Více aut současně
     </div>
   </div>
 </div>
@@ -152,16 +172,15 @@ body{padding-bottom:80px}
 </div>
 
 <div id="printArea"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 var BASE_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/index.html";
-var SK="sw-td-v10";
+var SK="sw-td-v11";
 function loadRides(){try{return JSON.parse(localStorage.getItem(SK))||[]}catch(e){return[]}}
 function saveRides(r){try{localStorage.setItem(SK,JSON.stringify(r))}catch(e){}}
-var rides=loadRides(),pendingConfirm=null,lastActiveCarId=null;
+var rides=loadRides(),pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanner=null;
 
 function switchTab(id){
   var p=['Scan','Gen','Log'],t=['tabScan','tabGen','tabLog'],d=['scan','gen','log'];
@@ -211,48 +230,68 @@ function parseQRData(data,mode){
   return{type:mode,value:data};
 }
 
-/* ══════════════════════════════════════════════
-   SCAN via PHOTO (input capture=environment)
-   - iPhone opens native Camera app
-   - User takes photo of QR code
-   - html5-qrcode decodes the image file
-   - NO getUserMedia, NO canvas, NO CORS issues
-   ══════════════════════════════════════════════ */
-var qrDecoder=new Html5Qrcode("qrReader");
+function handleScanResult(decodedText){
+  closeScan();
+  var parsed=parseQRData(decodedText,scanMode);
+  var info='',btn='Zapsat';
+  if(parsed.type==='car'){
+    var ex=findActiveByCarName(parsed.value);
+    if(ex){info='Jízda bude UKONČENA';btn='Ukončit'}else{info='Nová jízda'}
+  }else{
+    var cr2=findActiveRidesWithCustomer(parsed.value);
+    if(cr2.length>0){info='Jede v: '+cr2.map(function(r){return r.car}).join(', ')+' → UKONČIT';btn='Ukončit'}
+    else{var a2=getActiveRides();if(!a2.length)info='⚠ Žádné aktivní auto';else{var tg=lastActiveCarId?findRideById(lastActiveCarId):null;if(!tg||tg.end)tg=a2[0];info='→ '+tg.car}}
+  }
+  showConfirm(parsed.type,parsed.value,info,btn);
+}
 
-function scanPhoto(inputEl, mode){
-  if(!inputEl.files||!inputEl.files.length) return;
-  var file=inputEl.files[0];
-  inputEl.value=''; // reset for next scan
+/* ══════════════════════════════════════
+   Html5QrcodeScanner — full UI from library
+   Camera selection, permissions, scanning
+   all handled by the library itself.
+   ══════════════════════════════════════ */
+function startScan(mode){
+  scanMode=mode;
+  document.getElementById('scanLabel').textContent=mode==='car'?'🚗 Skenuj QR vozidla':'👤 Skenuj QR zákazníka';
+  document.getElementById('scanOverlay').classList.add('show');
 
-  document.getElementById('scanProcessing').classList.add('show');
+  // Clear previous
+  document.getElementById('scanReader').innerHTML='';
 
-  qrDecoder.scanFile(file, /* showImage= */ false)
-    .then(function(decodedText){
-      document.getElementById('scanProcessing').classList.remove('show');
-      var parsed=parseQRData(decodedText,mode);
-      var info='',btn='Zapsat';
-      if(parsed.type==='car'){
-        var ex=findActiveByCarName(parsed.value);
-        if(ex){info='Jízda tohoto vozu bude UKONČENA';btn='Ukončit'}else{info='Nová jízda'}
-      }else{
-        var cr2=findActiveRidesWithCustomer(parsed.value);
-        if(cr2.length>0){info='Jede v: '+cr2.map(function(r){return r.car}).join(', ')+' → UKONČIT';btn='Ukončit'}
-        else{var a2=getActiveRides();if(!a2.length)info='⚠ Žádné aktivní auto';else{var tg=lastActiveCarId?findRideById(lastActiveCarId):null;if(!tg||tg.end)tg=a2[0];info='→ '+tg.car}}
-      }
-      showConfirm(parsed.type,parsed.value,info,btn);
-    })
-    .catch(function(err){
-      document.getElementById('scanProcessing').classList.remove('show');
-      flash('QR kód nenalezen — zkuste znovu',true);
-    });
+  scanner=new Html5QrcodeScanner("scanReader",{
+    fps:10,
+    qrbox:250,
+    rememberLastUsedCamera:true,
+    supportedScanTypes:[0], // 0 = SCAN_TYPE_CAMERA only
+    showTorchButtonIfSupported:true,
+    showZoomSliderIfSupported:true,
+    defaultZoomValueIfSupported:2
+  },/* verbose= */false);
+
+  scanner.render(
+    function onSuccess(decodedText,decodedResult){
+      handleScanResult(decodedText);
+    },
+    function onError(errorMessage){
+      // ignore continuous errors
+    }
+  );
+}
+
+function closeScan(){
+  if(scanner){
+    try{scanner.clear()}catch(e){}
+    scanner=null;
+  }
+  document.getElementById('scanReader').innerHTML='';
+  document.getElementById('scanOverlay').classList.remove('show');
+  scanMode=null;
 }
 
 /* ── Render ── */
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function fmtTime(i){if(!i)return'';return new Date(i).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}
 function fmtDur(a,b){if(!a||!b)return'';var m=Math.round((new Date(b)-new Date(a))/60000);return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'min'}
-
 function renderActive(){
   var a=getActiveRides(),el=document.getElementById('activeSection');
   if(!a.length){el.innerHTML='';return}
