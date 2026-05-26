@@ -73,7 +73,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v27</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v30</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -225,13 +225,18 @@ function saveRideREST(ride){
 if(_hasUrlParams){
   loadRidesREST().then(function(){
     if(_urlCar){
+      // Close previous ride of same car
       var ex=findActiveByCarName(_urlCar);
-      if(ex){ex.end=new Date().toISOString();saveRideREST(ex);flash('\u{1F3C1} Ukončena: '+_urlCar);loadRidesREST()}
-      else{
+      var p1=ex?(function(){ex.end=new Date().toISOString();return saveRideREST(ex)})():Promise.resolve();
+      p1.then(function(){
         var ev=document.getElementById('eventName').value.trim();
         var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev};
-        saveRideREST(nr).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} Nová jízda: '+_urlCar);loadRidesREST()});
-      }
+        return saveRideREST(nr);
+      }).then(function(saved){
+        lastActiveCarId=saved._key;
+        flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);
+        loadRidesREST();
+      });
     } else if(_urlCust){
       showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr);
     }
@@ -312,12 +317,7 @@ function showConfirm(type,value,info,btn,email,phone,addr){
   document.getElementById('cfIcon').textContent=type==='car'?'\u{1F697}':'\u{1F464}';
   document.getElementById('cfLabel').textContent=type==='car'?'VOZIDLO':'ZÁKAZNÍK';
   document.getElementById('cfValue').textContent=value;
-  var infoText=info||'';
-  if(type==='customer'&&(email||phone||addr)){
-    var ex=[];if(email)ex.push(email);if(phone)ex.push(phone);if(addr)ex.push(addr);
-    if(ex.length)infoText+=(infoText?'\n':'')+ex.join(' \u00B7 ');
-  }
-  document.getElementById('cfInfo').textContent=infoText;
+  document.getElementById('cfInfo').textContent=info||'';
   document.getElementById('cfOkBtn').textContent=btn||'Zapsat';
   pendingConfirm={type:type,value:value,email:email||'',phone:phone||'',addr:addr||''};
   document.getElementById('confirmOverlay').classList.add('show');
@@ -355,11 +355,14 @@ function findActiveRidesWithCustomer(n){
 }
 
 function handleCar(name){
+  // Close previous ride of same car (if any)
   var ex=findActiveByCarName(name);
-  if(ex){ex.end=new Date().toISOString();fbWrite(ex);flash('\u{1F3C1} Ukončena: '+name);if(!fbReady)loadRidesREST();return}
+  if(ex){ex.end=new Date().toISOString();fbWrite(ex)}
+  // Always start new ride
   var ev=document.getElementById('eventName').value.trim();
   var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev};
-  var added=fbAdd(nr);lastActiveCarId=added._key;flash('\u{1F697} Nová jízda: '+name);
+  var added=fbAdd(nr);lastActiveCarId=added._key;
+  flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+name);
   if(!fbReady)loadRidesREST();
 }
 function handleCustomer(name,email,phone,addr){
@@ -405,7 +408,7 @@ function startScan(mode){
         var info='',btn='Zapsat';
         if(parsed.type==='car'){
           var ex2=findActiveByCarName(parsed.value);
-          if(ex2){info='Jízda bude UKONČENA';btn='Ukončit'}else{info='Nová jízda'}
+          if(ex2){info='Nové kolo (předchozí se ukončí)';btn='Nové kolo'}else{info='Nová jízda'}
         }else{
           var cr2=findActiveRidesWithCustomer(parsed.value);
           if(cr2.length>0){
@@ -480,12 +483,7 @@ function generateQR(type){
   var c=document.getElementById(cid);c.innerHTML='';
   new QRCode(c,{text:url,width:256,height:256,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
   var lbl=(type==='car'?'\u{1F697} ':'\u{1F464} ')+val;
-  if(type==='customer'){var extras=[];
-    if(document.getElementById('genCustEmail').value.trim())extras.push(document.getElementById('genCustEmail').value.trim());
-    if(document.getElementById('genCustPhone').value.trim())extras.push(document.getElementById('genCustPhone').value.trim());
-    if(document.getElementById('genCustAddr').value.trim())extras.push(document.getElementById('genCustAddr').value.trim());
-    if(extras.length)lbl+='\n'+extras.join(' \u00B7 ');
-  }
+  if(type==='customer'){var extras=[];}
   document.getElementById(nid).textContent=lbl;document.getElementById(oid).style.display='block';
 }
 function printQR(type){
