@@ -223,18 +223,20 @@ ridesRef.on('value',function(snapshot){
       showConfirm('car',_urlCar,ex?'Jízda bude UKONČENA':'Nová jízda',ex?'Ukončit':'Zapsat');
     } else if(_urlCust){
       var act=getActiveRides();
+      // DEBUG — remove after testing
+      document.title='DEBUG: rides='+rides.length+' active='+act.length;
       if(act.length>0){
         showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr);
       } else {
-        // No active rides yet — wait for next update
         _pendingCust={n:_urlCust,e:_urlEmail,p:_urlPhone,a:_urlAddr};
-        flash('\u23F3 Čekám na aktivní auto…');
+        flash('\u23F3 Čekám na data… ('+rides.length+' jízd)');
       }
     }
   }
   // Retry pending customer on subsequent updates
   if(_pendingCust&&getActiveRides().length>0){
     var pc=_pendingCust;_pendingCust=null;
+    document.title='RETRY OK: active='+getActiveRides().length;
     showCustConfirm(pc.n,pc.e,pc.p,pc.a);
   }
 });
