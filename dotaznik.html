@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Hodnocení zkušební jízdy — Mercedes-Benz</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --mb-black:#0d0d0d;
+  --mb-silver:#c0c0c0;
+  --mb-warm:#f5f3ef;
+  --mb-accent:#00adef;
+  --mb-gold:#b8860b;
+  --mb-text:#1a1a1a;
+  --mb-muted:#6b6b6b;
+  --mb-border:#e0dcd6;
+  --mb-card:#ffffff;
+  --mb-success:#2d8a4e;
+  --mb-star-off:#d4d0c8;
+  --mb-star-on:#d4a017;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--mb-warm);
+  color:var(--mb-text);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 16px 40px;
+}
+
+.header{
+  width:100%;max-width:520px;text-align:center;padding:32px 0 24px;
+}
+.header svg{width:48px;height:48px;margin-bottom:12px}
+.header h1{
+  font-family:'Playfair Display',serif;font-size:22px;font-weight:600;
+  color:var(--mb-black);letter-spacing:0.3px;margin-bottom:4px;
+}
+.header .sub{font-size:13px;color:var(--mb-muted);font-weight:400}
+.header .car-name{
+  display:inline-block;margin-top:10px;padding:6px 16px;
+  background:var(--mb-black);color:#fff;border-radius:20px;
+  font-size:13px;font-weight:600;letter-spacing:0.5px;
+}
+
+.card{
+  width:100%;max-width:520px;background:var(--mb-card);
+  border-radius:16px;padding:28px 24px;margin-bottom:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  border:1px solid var(--mb-border);
+}
+.card h2{
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:600;
+  margin-bottom:16px;color:var(--mb-black);
+}
+
+/* Stars */
+.stars{display:flex;gap:6px;justify-content:center;margin:8px 0 4px}
+.stars .star{
+  width:44px;height:44px;cursor:pointer;transition:transform .15s;
+  color:var(--mb-star-off);
+}
+.stars .star.active{color:var(--mb-star-on)}
+.stars .star:hover{transform:scale(1.15)}
+.star-label{text-align:center;font-size:12px;color:var(--mb-muted);min-height:18px}
+
+/* Slider sections */
+.slider-group{margin-bottom:20px}
+.slider-group:last-child{margin-bottom:0}
+.slider-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:500;margin-bottom:8px;
+}
+.slider-label .val{
+  font-weight:600;color:var(--mb-accent);font-size:13px;
+  min-width:20px;text-align:right;
+}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:6px;
+  border-radius:3px;background:var(--mb-border);outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:var(--mb-black);cursor:pointer;border:3px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,0.25);
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--mb-black);cursor:pointer;border:3px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,0.25);
+}
+
+/* Purchase intent */
+.intent-options{display:flex;flex-direction:column;gap:8px}
+.intent-opt{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border:1.5px solid var(--mb-border);border-radius:10px;cursor:pointer;
+  font-size:14px;transition:all .2s;
+}
+.intent-opt:hover{border-color:var(--mb-silver)}
+.intent-opt.selected{border-color:var(--mb-black);background:rgba(0,0,0,0.03)}
+.intent-dot{
+  width:18px;height:18px;border-radius:50%;border:2px solid var(--mb-border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;
+}
+.intent-opt.selected .intent-dot{border-color:var(--mb-black);background:var(--mb-black)}
+.intent-opt.selected .intent-dot::after{
+  content:'';width:6px;height:6px;border-radius:50%;background:#fff;
+}
+
+/* Textarea */
+textarea{
+  width:100%;min-height:100px;padding:14px;font-family:'DM Sans',sans-serif;
+  font-size:14px;border:1.5px solid var(--mb-border);border-radius:10px;
+  resize:vertical;outline:none;transition:border-color .2s;
+  background:var(--mb-warm);
+}
+textarea:focus{border-color:var(--mb-black)}
+textarea::placeholder{color:var(--mb-muted)}
+
+/* Submit */
+.submit-btn{
+  width:100%;max-width:520px;padding:16px;margin-top:8px;
+  background:var(--mb-black);color:#fff;border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;letter-spacing:0.3px;transition:all .2s;
+}
+.submit-btn:hover{background:#222}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Thank you */
+.thankyou{
+  display:none;text-align:center;padding:60px 20px;
+  width:100%;max-width:520px;
+}
+.thankyou .check{
+  width:64px;height:64px;margin:0 auto 20px;
+  background:var(--mb-success);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.thankyou h2{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px}
+.thankyou p{color:var(--mb-muted);font-size:14px}
+
+.form-wrap{width:100%;display:flex;flex-direction:column;align-items:center}
+.error-state{
+  text-align:center;padding:60px 20px;width:100%;max-width:520px;
+}
+.error-state h2{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:8px}
+.error-state p{color:var(--mb-muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <!-- MB Star -->
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="23" stroke="#0d0d0d" stroke-width="1.5" fill="none"/>
+    <path d="M24 6 L28 24 L42 36 L24 28 L6 36 L20 24 Z" fill="#0d0d0d"/>
+  </svg>
+  <h1>Hodnocení zkušební jízdy</h1>
+  <p class="sub">S. & W. Automobily s.r.o. — Mercedes-Benz</p>
+  <div class="car-name" id="carLabel">—</div>
+</div>
+
+<div class="error-state" id="errorState" style="display:none">
+  <h2>Neplatný odkaz</h2>
+  <p>Tento dotazník nelze otevřít. Odkaz je neplatný nebo již byl použit.</p>
+</div>
+
+<div class="form-wrap" id="formWrap">
+
+  <!-- 1. Celkový dojem -->
+  <div class="card">
+    <h2>Celkový dojem z vozu</h2>
+    <div class="stars" id="overallStars"></div>
+    <div class="star-label" id="overallLabel"></div>
+  </div>
+
+  <!-- 2. Kategorie hodnocení -->
+  <div class="card">
+    <h2>Hodnocení jednotlivých oblastí</h2>
+    <div class="slider-group">
+      <div class="slider-label"><span>Jízdní komfort</span><span class="val" id="comfortVal">5</span></div>
+      <input type="range" min="1" max="10" value="5" id="comfort" oninput="updSlider(this,'comfortVal')">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Jízdní vlastnosti</span><span class="val" id="handlingVal">5</span></div>
+      <input type="range" min="1" max="10" value="5" id="handling" oninput="updSlider(this,'handlingVal')">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Technologie & konektivita</span><span class="val" id="techVal">5</span></div>
+      <input type="range" min="1" max="10" value="5" id="tech" oninput="updSlider(this,'techVal')">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Interiér & kvalita zpracování</span><span class="val" id="interiorVal">5</span></div>
+      <input type="range" min="1" max="10" value="5" id="interior" oninput="updSlider(this,'interiorVal')">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Poměr cena / hodnota</span><span class="val" id="valueVal">5</span></div>
+      <input type="range" min="1" max="10" value="5" id="value" oninput="updSlider(this,'valueVal')">
+    </div>
+  </div>
+
+  <!-- 3. Pravděpodobnost nákupu -->
+  <div class="card">
+    <h2>Pravděpodobnost nákupu</h2>
+    <div class="intent-options" id="intentOptions">
+      <div class="intent-opt" onclick="selectIntent(this,'definitely')" data-val="definitely">
+        <div class="intent-dot"></div><span>Určitě koupím tento model</span>
+      </div>
+      <div class="intent-opt" onclick="selectIntent(this,'probably')" data-val="probably">
+        <div class="intent-dot"></div><span>Vážně zvažuji nákup</span>
+      </div>
+      <div class="intent-opt" onclick="selectIntent(this,'considering')" data-val="considering">
+        <div class="intent-dot"></div><span>Porovnávám s konkurencí</span>
+      </div>
+      <div class="intent-opt" onclick="selectIntent(this,'unlikely')" data-val="unlikely">
+        <div class="intent-dot"></div><span>Spíše nekoupím</span>
+      </div>
+      <div class="intent-opt" onclick="selectIntent(this,'just_looking')" data-val="just_looking">
+        <div class="intent-dot"></div><span>Jen jsem se chtěl(a) svézt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Komentář -->
+  <div class="card">
+    <h2>Volný komentář</h2>
+    <textarea id="comment" placeholder="Co se Vám líbilo nejvíce? Co byste zlepšili? Jakékoliv postřehy..."></textarea>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">Odeslat hodnocení</button>
+</div>
+
+<div class="thankyou" id="thankyou">
+  <div class="check">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h2>Děkujeme!</h2>
+  <p>Vaše hodnocení nám pomáhá zlepšovat služby.<br>Přejeme Vám krásný den.</p>
+</div>
+
+<script>
+// ── Parse URL params ──
+var params=new URLSearchParams(location.search);
+var rideId=params.get('rid');
+var carName=params.get('car');
+var customerName=params.get('name');
+var FB_URL='https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app';
+
+if(!rideId){
+  document.getElementById('formWrap').style.display='none';
+  document.getElementById('errorState').style.display='block';
+} else {
+  document.getElementById('carLabel').textContent=carName||'Mercedes-Benz';
+}
+
+// ── Stars ──
+var starLabels=['','Velmi špatné','Špatné','Průměrné','Dobré','Výborné'];
+var overallRating=0;
+(function(){
+  var c=document.getElementById('overallStars');
+  for(var i=1;i<=5;i++){
+    var s=document.createElement('div');
+    s.className='star';s.dataset.v=i;
+    s.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" width="44" height="44"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+    s.onclick=function(){setStars(parseInt(this.dataset.v))};
+    c.appendChild(s);
+  }
+})();
+
+function setStars(n){
+  overallRating=n;
+  var stars=document.querySelectorAll('#overallStars .star');
+  stars.forEach(function(s){s.classList.toggle('active',parseInt(s.dataset.v)<=n)});
+  document.getElementById('overallLabel').textContent=starLabels[n]||'';
+}
+
+// ── Sliders ──
+function updSlider(el,valId){document.getElementById(valId).textContent=el.value}
+
+// ── Purchase intent ──
+var selectedIntent='';
+function selectIntent(el,val){
+  selectedIntent=val;
+  document.querySelectorAll('.intent-opt').forEach(function(o){o.classList.remove('selected')});
+  el.classList.add('selected');
+}
+
+// ── Submit ──
+function submitForm(){
+  if(!overallRating){alert('Prosím zvolte celkové hodnocení (hvězdičky).');return}
+  var btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.textContent='Odesílám…';
+
+  var data={
+    overall_rating:overallRating,
+    comfort:parseInt(document.getElementById('comfort').value),
+    handling:parseInt(document.getElementById('handling').value),
+    tech:parseInt(document.getElementById('tech').value),
+    interior:parseInt(document.getElementById('interior').value),
+    value_for_money:parseInt(document.getElementById('value').value),
+    purchase_intent:selectedIntent||'not_answered',
+    comment:document.getElementById('comment').value.trim(),
+    submitted_at:new Date().toISOString(),
+    customer_name:customerName||''
+  };
+
+  // Save to Firebase under rides/{rideId}/feedback
+  fetch(FB_URL+'/rides/'+rideId+'/feedback.json',{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  }).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    document.getElementById('formWrap').style.display='none';
+    document.getElementById('thankyou').style.display='block';
+  }).catch(function(e){
+    console.error(e);
+    alert('Nepodařilo se odeslat. Zkuste to prosím znovu.');
+    btn.disabled=false;btn.textContent='Odeslat hodnocení';
+  });
+}
+</script>
+</body>
+</html>
