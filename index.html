@@ -73,7 +73,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v23</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -211,8 +211,12 @@ function loadRidesREST(){
 }
 
 function saveRideREST(ride){
-  if(ride._key)return fbRest('PUT','rides/'+ride._key,ride);
-  return fbRest('POST','rides',ride).then(function(res){ride._key=res.name;return ride});
+  // Clone without _key for Firebase
+  var clean={};for(var k in ride)if(k!=='_key'&&ride.hasOwnProperty(k))clean[k]=ride[k];
+  // Firebase doesn't store empty arrays — use placeholder
+  if(clean.customers&&clean.customers.length===0)clean.customers=[];
+  if(ride._key)return fbRest('PUT','rides/'+ride._key,clean).then(function(){return ride});
+  return fbRest('POST','rides',clean).then(function(res){ride._key=res.name;return ride});
 }
 
 /* ══════════════════════════════════════
@@ -273,17 +277,17 @@ try{
 }
 
 /* ── Write helpers — SDK if available, REST fallback ── */
+function cleanRide(r){var o={};for(var k in r)if(k!=='_key'&&r.hasOwnProperty(k))o[k]=r[k];return o}
 function fbWrite(ride){
   if(fbReady&&ridesRef){
-    if(ride._key){ridesRef.child(ride._key).set(ride)}
-    else{var ref=ridesRef.push();ride._key=ref.key;ref.set(ride)}
+    if(ride._key){ridesRef.child(ride._key).set(cleanRide(ride))}
+    else{var ref=ridesRef.push();ride._key=ref.key;ref.set(cleanRide(ride))}
     return ride;
   }
-  saveRideREST(ride);
-  return ride;
+  saveRideREST(ride);return ride;
 }
 function fbAdd(ride){
-  if(fbReady&&ridesRef){var ref=ridesRef.push();ride._key=ref.key;ref.set(ride);return ride}
+  if(fbReady&&ridesRef){var ref=ridesRef.push();ride._key=ref.key;ref.set(cleanRide(ride));return ride}
   saveRideREST(ride);return ride;
 }
 function fbDeleteAll(){
