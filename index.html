@@ -73,7 +73,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v26</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v27</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -275,6 +275,10 @@ try{
   document.getElementById('syncStatus').textContent='\u{1F7E1}';
   if(!_hasUrlParams)loadRidesREST();
 }
+
+/* ── REST polling: refresh data every 5s as fallback for SDK issues ── */
+if(!_hasUrlParams)loadRidesREST();
+setInterval(function(){loadRidesREST()},5000);
 
 /* ── Write helpers — SDK if available, REST fallback ── */
 function cleanRide(r){var o={};for(var k in r)if(k!=='_key'&&r.hasOwnProperty(k))o[k]=r[k];return o}
