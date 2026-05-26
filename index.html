@@ -73,7 +73,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v30</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v31</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -153,6 +153,7 @@ body{padding-bottom:80px}
 <div id="panelLog" class="panel">
   <div style="display:flex;gap:8px;margin-bottom:12px">
     <input class="inp" id="logSearch" placeholder="Hledat…" oninput="renderLog()">
+    <button class="btn btn-outline btn-sm" onclick="sendSurveys()" title="Odeslat dotazníky">✉️</button>
     <button class="btn btn-outline btn-sm" onclick="exportLog()">📥</button>
     <button class="btn btn-outline btn-sm" onclick="clearAll()">🗑</button>
   </div>
@@ -160,6 +161,8 @@ body{padding-bottom:80px}
 </div>
 <div id="printArea"></div>
 
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <!-- Firebase SDK via cdnjs (same CDN as other libs) -->
 <!-- Firebase SDK -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
@@ -464,6 +467,7 @@ function renderLog(){
       if(ce||cp||ca){h+=' <small style="color:var(--text2);font-weight:400">';var parts=[];if(ce)parts.push(esc(ce));if(cp)parts.push(esc(cp));if(ca)parts.push(esc(ca));h+=parts.join(' \u00B7 ');h+='</small>'}
       h+='</span><br>'}h+='</div>'}
     h+=r.end?'<span class="dur">'+fmtDur(r.start,r.end)+'</span>':'<span class="active-tag">\u25CF PROBÍHÁ</span>';
+    if(r.surveySent)h+=' <span style="font-size:11px;color:var(--accent);margin-left:4px">✉️</span>';
     h+='</div>';
   }
   el.innerHTML=h;
@@ -504,6 +508,65 @@ function exportLog(){
       csv+='"'+(r.event||'')+'";"'+r.car+'";"'+cn+'";"'+ce+'";"'+cp+'";"'+ca+'";"'+fmtTime(r.start)+'";"'+(r.end?fmtTime(r.end):'probíhá')+'";"'+(r.end?fmtDur(r.start,r.end):'')+'";\n'}}
   }
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='zkusebni-jizdy-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+/* ── EmailJS — dotazníky ── */
+var EMAILJS_PK='B8AOopYxajiDIXEJT';
+var EMAILJS_SVC='service_dqlpkln';
+var EMAILJS_TPL='template_9pecuuf';
+var SURVEY_BASE='https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/dotaznik.html';
+
+try{emailjs.init(EMAILJS_PK)}catch(e){console.warn('EmailJS init failed',e)}
+
+function sendSurveys(){
+  var toSend=[];
+  for(var i=0;i<rides.length;i++){
+    var r=rides[i];
+    if(!r.end)continue;
+    if(r.surveySent)continue;
+    var cs=r.customers||[];
+    for(var j=0;j<cs.length;j++){
+      var c=cs[j];
+      if(typeof c==='object'&&c.email&&c.email.trim()){
+        toSend.push({ride:r,customer:c});
+      }
+    }
+  }
+  if(!toSend.length){flash('Žádné jízdy k odeslání (chybí email nebo již odesláno)',true);return}
+  if(!confirm('Odeslat dotazník '+toSend.length+' zákazníkům?'))return;
+
+  var sent=0,fail=0,total=toSend.length;
+  flash('Odesílám 0/'+total+'…');
+
+  function sendNext(idx){
+    if(idx>=total){
+      if(fail)flash('Odesláno '+sent+'/'+total+' ('+fail+' chyb)',true);
+      else flash('✉️ Odesláno '+sent+' dotazníků');
+      renderLog();
+      return;
+    }
+    var item=toSend[idx];
+    var r=item.ride,c=item.customer;
+    var link=SURVEY_BASE+'?rid='+encodeURIComponent(r._key)+'&car='+encodeURIComponent(r.car)+'&name='+encodeURIComponent(c.name);
+    var params={
+      customer_email:c.email.trim(),
+      customer_name:c.name,
+      car_name:r.car,
+      survey_link:link
+    };
+    emailjs.send(EMAILJS_SVC,EMAILJS_TPL,params).then(function(){
+      sent++;
+      r.surveySent=true;
+      fbWrite(r);
+      flash('Odesílám '+sent+'/'+total+'…');
+      sendNext(idx+1);
+    }).catch(function(err){
+      console.error('EmailJS error for '+c.email,err);
+      fail++;
+      sendNext(idx+1);
+    });
+  }
+  sendNext(0);
 }
 </script>
 </body>
