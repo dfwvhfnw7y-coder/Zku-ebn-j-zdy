@@ -226,6 +226,9 @@ ridesRef.on('value',function(snapshot){
   // Handle URL params after first data load
   if(!_urlHandled){
     _urlHandled=true;
+    // DEBUG — update banner
+    var db2=document.getElementById('debugBanner');
+    if(db2)db2.textContent='FB loaded: rides='+rides.length+' active='+getActiveRides().length+' car='+(_urlCar||'-')+' cust='+(_urlCust||'-');
     if(_urlCar){
       var ex=findActiveByCarName(_urlCar);
       showConfirm('car',_urlCar,ex?'Jízda bude UKONČENA':'Nová jízda',ex?'Ukončit':'Zapsat');
