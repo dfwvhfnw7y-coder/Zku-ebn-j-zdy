@@ -197,11 +197,11 @@ document.getElementById('eventName').value=loadEventName();
    FIREBASE REAL-TIME SYNC
    Listens for ALL changes → updates local rides array → re-renders
    ══════════════════════════════════════ */
+var firebaseReady=false;
 ridesRef.on('value',function(snapshot){
   var data=snapshot.val();
   rides=[];
   if(data){
-    // Convert object to array, sorted newest first
     var keys=Object.keys(data);
     for(var i=0;i<keys.length;i++){
       var r=data[keys[i]];
@@ -212,6 +212,7 @@ ridesRef.on('value',function(snapshot){
   }
   renderAll();
   document.getElementById('syncStatus').textContent='🟢';
+  if(!firebaseReady){firebaseReady=true;processURL()}
 });
 
 // Connection state
@@ -492,18 +493,16 @@ function exportLog(){
 /* ── URL params (from QR via native camera) ── */
 function processURL(){
   var p=new URLSearchParams(location.search),car=p.get('car'),cust=p.get('customer'),em=p.get('email')||'',ph=p.get('phone')||'',ad=p.get('addr')||'';
-  if(car||cust)history.replaceState(null,'',location.pathname);
+  if(!car&&!cust)return;
+  history.replaceState(null,'',location.pathname);
   if(car){var ex=findActiveByCarName(car);showConfirm('car',car,ex?'Jízda bude UKONČENA':'Nová jízda',ex?'Ukončit':'Zapsat')}
   else if(cust){
-    // Wait briefly for Firebase data to load before showing confirm
-    setTimeout(function(){
-      var cr=findActiveRidesWithCustomer(cust);
-      if(cr.length){var oa=getActiveRides().filter(function(r){return cr.indexOf(r)===-1});if(oa.length)showConfirm('customer',cust,'Přesun z '+cr[0].car+' → '+oa[0].car,'Přesunout',em,ph,ad);else showConfirm('customer',cust,'Ukončí jízdu v: '+cr[0].car,'Ukončit',em,ph,ad)}
-      else{var a=getActiveRides();showConfirm('customer',cust,a.length?'→ '+a[0].car:'⚠ Žádné auto','Zapsat',em,ph,ad)}
-    },1500);
+    var cr=findActiveRidesWithCustomer(cust);
+    if(cr.length){var oa=getActiveRides().filter(function(r){return cr.indexOf(r)===-1});if(oa.length)showConfirm('customer',cust,'Přesun z '+cr[0].car+' → '+oa[0].car,'Přesunout',em,ph,ad);else showConfirm('customer',cust,'Ukončí jízdu v: '+cr[0].car,'Ukončit',em,ph,ad)}
+    else{var a=getActiveRides();showConfirm('customer',cust,a.length?'→ '+a[0].car:'⚠ Žádné auto','Zapsat',em,ph,ad)}
   }
 }
-processURL();
+// processURL is now called from Firebase onValue after first data load
 </script>
 </body>
 </html>
