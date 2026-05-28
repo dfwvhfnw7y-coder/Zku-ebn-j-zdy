@@ -119,7 +119,10 @@ body{padding-bottom:80px}
   <div id="activeSection"></div>
   <div class="card"><h3>Ruční zadání</h3>
     <div style="margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div>
-    <div style="margin-bottom:12px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
+    <div style="margin-bottom:8px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
+    <div style="margin-bottom:8px"><input class="inp" id="manualEmail" placeholder="E-mail (nepovinné)" type="email" style="font-size:13px"></div>
+    <div style="margin-bottom:8px"><input class="inp" id="manualPhone" placeholder="Telefon (nepovinné)" type="tel" style="font-size:13px"></div>
+    <div style="margin-bottom:12px"><input class="inp" id="manualAddr" placeholder="Adresa (nepovinné)" style="font-size:13px"></div>
     <button class="btn btn-outline" onclick="manualAdd()">Zapsat ručně</button>
   </div>
 </div>
@@ -391,7 +394,7 @@ function handleCustomer(name,email,phone,addr){
 function endRide(key){var r=findRideByKey(key);if(r&&!r.end){r.end=new Date().toISOString();fbWrite(r);flash('\u{1F3C1} '+r.car);if(!fbReady)loadRidesREST()}}
 function endAllRides(){var a=getActiveRides();if(!a.length)return;if(!confirm('Ukončit '+a.length+' jízd?'))return;var n=new Date().toISOString();for(var i=0;i<a.length;i++){a[i].end=n;fbWrite(a[i])}flash('Vše ukončeno');if(!fbReady)loadRidesREST()}
 function clearAll(){if(!confirm('Smazat VŠECHNA data?'))return;if(!confirm('Opravdu?'))return;fbDeleteAll();flash('Smazáno');rides=[];renderAll()}
-function manualAdd(){var c=document.getElementById('manualCar').value.trim(),u=document.getElementById('manualCust').value.trim();if(!c&&!u){flash('Zadej vůz/zákazníka',true);return}if(c){handleCar(c);document.getElementById('manualCar').value=''}if(u){handleCustomer(u,'','','');document.getElementById('manualCust').value=''}}
+function manualAdd(){var c=document.getElementById('manualCar').value.trim(),u=document.getElementById('manualCust').value.trim(),em=document.getElementById('manualEmail').value.trim(),ph=document.getElementById('manualPhone').value.trim(),ad=document.getElementById('manualAddr').value.trim();if(!c&&!u){flash('Zadej vůz/zákazníka',true);return}if(c){handleCar(c);document.getElementById('manualCar').value=''}if(u){handleCustomer(u,em,ph,ad);document.getElementById('manualCust').value='';document.getElementById('manualEmail').value='';document.getElementById('manualPhone').value='';document.getElementById('manualAddr').value=''}}
 function parseQRData(data,mode){try{var u=new URL(data);var p=u.searchParams;if(p.get('car'))return{type:'car',value:p.get('car')};if(p.get('customer'))return{type:'customer',value:p.get('customer'),email:p.get('email')||'',phone:p.get('phone')||'',addr:p.get('addr')||''}}catch(e){}return{type:mode,value:data,email:'',phone:'',addr:''}}
 
 /* ── ZXing Scanner ── */
