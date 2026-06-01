@@ -141,7 +141,8 @@ body{padding-bottom:80px}
     <input class="inp" id="genCustAddr" placeholder="Adresa (nepovinné)" style="margin-bottom:12px;font-size:13px">
     <button class="btn btn-accent" onclick="generateQR('customer')">Vytvořit QR</button>
     <div id="qrCustOutput" style="display:none"><div class="qr-block"><div id="qrCustContainer"></div><div class="qr-label" id="qrCustName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
+    <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button>
+    <button class="btn btn-outline btn-sm" onclick="shareQR('customer')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div>
   </div>
   <div class="card"><h3>ℹ️ Návod</h3>
     <div style="font-size:13px;color:var(--text2);line-height:1.7">
@@ -500,6 +501,21 @@ function printQR(type){
   var name=document.getElementById(nid).textContent;
   document.getElementById('printArea').innerHTML='<div style="text-align:center;padding:40px;font-family:-apple-system,sans-serif"><div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">'+lbl+'</div><img src="'+src+'" style="width:300px;height:300px"><div style="font-size:22px;font-weight:700;margin-top:12px">'+esc(name)+'</div><div style="font-size:11px;color:#999;margin-top:8px">S. &amp; W. Automobily s.r.o.</div></div>';
   window.print();
+}
+async function shareQR(type){
+  var cid=type==='car'?'qrCarContainer':'qrCustContainer',nid=type==='car'?'qrCarName':'qrCustName';
+  var el=document.getElementById(cid),cv=el.querySelector('canvas'),im=el.querySelector('img');
+  var name=document.getElementById(nid).textContent;
+  if(!navigator.canShare){flash('Sdílení není podporováno v tomto prohlížeči',true);return}
+  try{
+    var blob;
+    if(cv){blob=await new Promise(function(r){cv.toBlob(r,'image/png')})}
+    else if(im){var resp=await fetch(im.src);blob=await resp.blob()}
+    else{return}
+    var file=new File([blob],'QR-'+name.replace(/[^a-zA-Z0-9]/g,'_')+'.png',{type:'image/png'});
+    if(!navigator.canShare({files:[file]})){flash('Sdílení obrázků není podporováno',true);return}
+    await navigator.share({title:'QR – '+name,text:name,files:[file]});
+  }catch(e){if(e.name!=='AbortError')flash('Chyba sdílení: '+e.message,true)}
 }
 function exportLog(){
   if(!rides.length){flash('Žádná data',true);return}
