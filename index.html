@@ -88,7 +88,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v31</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v32</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -583,58 +583,78 @@ function exportLog(){
 }
 
 /* ── Customer registry ── */
+var cpickAllEvents=false;
+function getEventName(){return(document.getElementById('eventName').value||'').trim()}
 function saveCustomer(name,email,phone,addr){
   if(!name)return;
-  // Check if already registered (by name+email combo)
+  var ev=getEventName();
+  var nl=name.toLowerCase(),el=(email||'').toLowerCase();
   for(var i=0;i<regCustomers.length;i++){
     var c=regCustomers[i];
-    if(c.name===name&&(c.email||'')===(email||''))return;
+    if((c.name||'').toLowerCase()===nl&&(c.email||'').toLowerCase()===el&&(c.event||'')===(ev||''))return;
   }
-  var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',created:new Date().toISOString()};
+  var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',event:ev,created:new Date().toISOString()};
   if(fbReady&&db){db.ref('customers').push(obj)}
   else{fetch(FB_URL+'/customers.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)})}
 }
 function customerRideCount(name){
-  var c=0,today=new Date().toDateString();
+  var c=0;
   for(var i=0;i<rides.length;i++){
     var cs=rides[i].customers||[];
     for(var j=0;j<cs.length;j++){var cn=typeof cs[j]==='object'?cs[j].name:cs[j];if(cn===name)c++}
   }
   return c;
 }
+function getCustomerEvents(){
+  var evs={};
+  for(var i=0;i<regCustomers.length;i++){var e=regCustomers[i].event||'';if(e)evs[e]=true}
+  return Object.keys(evs).sort(function(a,b){return a.localeCompare(b,'cs')});
+}
 function openCustomerPicker(){
   if(!getActiveRides().length){flash('Nejdřív naskenuj auto',true);return}
   document.getElementById('cpickSearch').value='';
+  cpickAllEvents=false;
   document.getElementById('cpickOverlay').classList.add('show');
   renderCustomerPicker();
   setTimeout(function(){document.getElementById('cpickSearch').focus()},100);
 }
 function closeCustomerPicker(){document.getElementById('cpickOverlay').classList.remove('show')}
+function toggleCpickEvents(){cpickAllEvents=!cpickAllEvents;renderCustomerPicker()}
 function renderCustomerPicker(){
   var q=(document.getElementById('cpickSearch').value||'').toLowerCase().trim();
+  var ev=getEventName();
   var filtered=[];
   for(var i=0;i<regCustomers.length;i++){
     var c=regCustomers[i];
+    if(!cpickAllEvents&&ev&&(c.event||'')!==ev)continue;
     var s=(c.name+' '+c.email+' '+c.phone+' '+c.addr).toLowerCase();
     if(!q||s.indexOf(q)!==-1)filtered.push(c);
   }
   var el=document.getElementById('cpickList');
+  // Header with toggle + count
+  var evLabel=cpickAllEvents?'Všechny akce':(ev||'Bez názvu akce');
+  var otherEvents=getCustomerEvents();
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">';
+  h+='<span style="font-size:12px;color:var(--text2)">'+esc(evLabel)+' · '+filtered.length+' zákazníků</span>';
+  if(otherEvents.length>0)h+='<button onclick="toggleCpickEvents()" style="font-size:12px;color:var(--accent);background:none;border:1px solid var(--accent);padding:3px 10px;border-radius:12px;cursor:pointer;font-weight:600">'+(cpickAllEvents?'Jen tato akce':'Všechny akce')+'</button>';
+  h+='</div>';
   if(!filtered.length){
-    el.innerHTML='<div class="cpick-empty">'+(regCustomers.length?'Žádná shoda':'Zatím žádní zákazníci.<br>Vytvořte QR v záložce QR kódy.')+'</div>';
-    return;
+    h+='<div class="cpick-empty">'+(regCustomers.length?'Žádná shoda'+(cpickAllEvents?'':' — zkuste „Všechny akce"'):'Zatím žádní zákazníci.<br>Vytvořte QR v záložce QR kódy.')+'</div>';
+    el.innerHTML=h;return;
   }
-  var h='',lastLetter='';
+  var lastLetter='';
   for(var i=0;i<filtered.length;i++){
     var c=filtered[i],fl=(c.name||'?')[0].toUpperCase();
     if(fl!==lastLetter){lastLetter=fl;h+='<div class="cpick-alpha">'+esc(fl)+'</div>'}
     var rc=customerRideCount(c.name);
     var detail=[];
     if(c.email)detail.push(c.email);if(c.phone)detail.push(c.phone);
+    if(cpickAllEvents&&c.event)detail.push('\uD83D\uDCCB '+c.event);
     h+='<div class="cpick-item" onclick="pickCustomer('+i+')">';
     h+='<div><div class="ci-name">'+esc(c.name)+'</div>';
     if(detail.length)h+='<div class="ci-detail">'+esc(detail.join(' · '))+'</div>';
     h+='</div>';
-    if(rc)h+='<div class="ci-badge">'+rc+'× jízda</div>';
+    if(rc)h+='<div class="ci-badge">'+rc+'×</div>';
     h+='</div>';
   }
   el.innerHTML=h;
