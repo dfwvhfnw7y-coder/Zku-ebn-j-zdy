@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Zkušební jízdy — S. & W. Automobily</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -203,10 +206,26 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
+var APP_VERSION=32;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/index.html";
+var VERSION_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/version.json";
 var rides=[],regCustomers=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null;
 var fbReady=false,db=null,ridesRef=null;
+
+/* ── Version check ── */
+function checkUpdate(){
+  fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
+    if(d&&d.version>APP_VERSION){
+      var b=document.createElement('div');
+      b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#00c9a7;color:#000;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px';
+      b.innerHTML='🔄 Nová verze v'+d.version+' je k dispozici <span style="background:#000;color:#fff;padding:4px 12px;border-radius:8px;font-size:12px">Aktualizovat</span>';
+      b.onclick=function(){location.href=BASE_URL+'?v='+d.version+'&t='+Date.now();setTimeout(function(){location.reload(true)},100)};
+      document.body.prepend(b);
+    }
+  }).catch(function(){});
+}
+setTimeout(checkUpdate,2000);
 
 /* ── Event name ── */
 function saveEventName(){try{localStorage.setItem('sw-event',document.getElementById('eventName').value)}catch(e){}}
