@@ -91,7 +91,7 @@ body{padding-bottom:80px}
 </style>
 </head>
 <body>
-<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px">v32</span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
+<div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px" id="verBadge"></span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
   <input class="inp" id="eventName" placeholder="Název akce (nepovinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
@@ -207,6 +207,7 @@ body{padding-bottom:80px}
 
 <script>
 var APP_VERSION=33;
+document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/index.html";
 var VERSION_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/version.json";
