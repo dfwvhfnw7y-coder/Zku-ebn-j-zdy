@@ -89,7 +89,7 @@ body{padding-bottom:80px}
   <div class="scan-top">
     <button class="scan-cancel" onclick="closeScan()">✕ Zavřít</button>
     <div class="label" id="scanLabel">Skenuj QR</div>
-    <div style="width:60px"></div>
+    <button class="scan-cancel" onclick="toggleTorch()" id="torchBtn" style="font-size:20px;opacity:0.5">🔦</button>
   </div>
   <div class="scan-body">
     <video id="scanVideo" playsinline autoplay muted></video>
@@ -432,8 +432,20 @@ function startScan(mode){
 }
 function closeScan(){
   if(scanControls){try{scanControls.stop()}catch(e){}}scanControls=null;
+  torchOn=false;
   var v=document.getElementById('scanVideo');if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null}
   document.getElementById('scanOverlay').classList.remove('show');scanMode=null;
+}
+var torchOn=false;
+function toggleTorch(){
+  var v=document.getElementById('scanVideo');
+  if(!v||!v.srcObject)return;
+  var track=v.srcObject.getVideoTracks()[0];
+  if(!track)return;
+  torchOn=!torchOn;
+  track.applyConstraints({advanced:[{torch:torchOn}]}).then(function(){
+    document.getElementById('torchBtn').style.opacity=torchOn?'1':'0.5';
+  }).catch(function(){flash('Svítilna není dostupná',true);torchOn=false});
 }
 
 /* ── Render ── */
@@ -489,7 +501,7 @@ function generateQR(type){
     if(em)url+='&email='+encodeURIComponent(em);if(ph)url+='&phone='+encodeURIComponent(ph);if(ad)url+='&addr='+encodeURIComponent(ad);
   }
   var c=document.getElementById(cid);c.innerHTML='';
-  new QRCode(c,{text:url,width:256,height:256,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+  new QRCode(c,{text:url,width:256,height:256,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H,margin:4});
   var lbl=(type==='car'?'\u{1F697} ':'\u{1F464} ')+val;
   if(type==='customer'){var extras=[];}
   document.getElementById(nid).textContent=lbl;document.getElementById(oid).style.display='block';
