@@ -88,9 +88,40 @@ body{padding-bottom:80px}
 .cpick-item .ci-detail{font-size:12px;color:var(--text2);margin-top:2px}
 .cpick-item .ci-badge{font-size:10px;background:rgba(0,201,167,.15);color:var(--accent);padding:2px 8px;border-radius:20px;font-weight:600;margin-left:auto;white-space:nowrap}
 .cpick-empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
+/* PIN Lock */
+.pin-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.pin-overlay.hidden{display:none}
+.pin-box{text-align:center;max-width:320px;width:100%}
+.pin-box h2{font-size:20px;margin-bottom:4px}
+.pin-box .pin-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+.pin-dots .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:all .15s}
+.pin-dots .dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-dots .dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto}
+.pin-key{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:22px;font-weight:600;color:var(--text);cursor:pointer;transition:all .1s;-webkit-user-select:none}
+.pin-key:active{background:var(--accent);color:#000;border-color:var(--accent)}
+.pin-key.empty{visibility:hidden}
+.pin-key.backspace{font-size:16px}
 </style>
 </head>
 <body>
+
+<div id="pinOverlay" class="pin-overlay">
+  <div class="pin-box">
+    <h2>🔒 Zkušební jízdy</h2>
+    <div class="pin-sub">Zadejte PIN pro přístup</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="dot" id="pd0"></div><div class="dot" id="pd1"></div><div class="dot" id="pd2"></div><div class="dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <div class="pin-key" onclick="pinKey('1')">1</div><div class="pin-key" onclick="pinKey('2')">2</div><div class="pin-key" onclick="pinKey('3')">3</div>
+      <div class="pin-key" onclick="pinKey('4')">4</div><div class="pin-key" onclick="pinKey('5')">5</div><div class="pin-key" onclick="pinKey('6')">6</div>
+      <div class="pin-key" onclick="pinKey('7')">7</div><div class="pin-key" onclick="pinKey('8')">8</div><div class="pin-key" onclick="pinKey('9')">9</div>
+      <div class="pin-key empty"></div><div class="pin-key" onclick="pinKey('0')">0</div><div class="pin-key backspace" onclick="pinBack()">⌫</div>
+    </div>
+  </div>
+</div>
 <div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px" id="verBadge"></span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
@@ -202,6 +233,7 @@ body{padding-bottom:80px}
 <!-- Firebase SDK -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.js"></script>
 <!-- ZXing QR scanner -->
 <script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
 <!-- QR generator -->
@@ -211,10 +243,29 @@ body{padding-bottom:80px}
 var APP_VERSION=34;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
-var BASE_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/index.html";
-var VERSION_URL="https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/version.json";
+var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
+var VERSION_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/version.json";
 var rides=[],regCustomers=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null;
 var fbReady=false,db=null,ridesRef=null;
+
+/* ── PIN Lock ── */
+var PIN_CODE='7319',pinEntry='',pinLocked=true;
+if(sessionStorage.getItem('pinOK')==='1'){pinLocked=false;document.getElementById('pinOverlay').classList.add('hidden')}
+function pinKey(n){
+  if(pinEntry.length>=4)return;pinEntry+=n;
+  for(var i=0;i<4;i++){var d=document.getElementById('pd'+i);d.classList.toggle('filled',i<pinEntry.length);d.classList.remove('error')}
+  if(pinEntry.length===4){
+    if(pinEntry===PIN_CODE){
+      pinLocked=false;sessionStorage.setItem('pinOK','1');
+      document.getElementById('pinOverlay').classList.add('hidden');
+      doAuth();
+    } else {
+      for(var j=0;j<4;j++)document.getElementById('pd'+j).classList.add('error');
+      setTimeout(function(){pinEntry='';for(var k=0;k<4;k++){var d=document.getElementById('pd'+k);d.classList.remove('filled','error')}},600);
+    }
+  }
+}
+function pinBack(){if(pinEntry.length>0){pinEntry=pinEntry.slice(0,-1);for(var i=0;i<4;i++){var d=document.getElementById('pd'+i);d.classList.toggle('filled',i<pinEntry.length);d.classList.remove('error')}}}
 
 /* ── Version check ── */
 function checkUpdate(){
@@ -282,31 +333,7 @@ function saveRideREST(ride){
 }
 
 /* ══════════════════════════════════════
-   Handle URL params via REST (no SDK dependency)
-   ══════════════════════════════════════ */
-if(_hasUrlParams){
-  loadRidesREST().then(function(){
-    if(_urlCar){
-      // Close previous ride of same car
-      var ex=findActiveByCarName(_urlCar);
-      var p1=ex?(function(){ex.end=new Date().toISOString();return saveRideREST(ex)})():Promise.resolve();
-      p1.then(function(){
-        var ev=document.getElementById('eventName').value.trim();
-        var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev};
-        return saveRideREST(nr);
-      }).then(function(saved){
-        lastActiveCarId=saved._key;
-        flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);
-        loadRidesREST();
-      });
-    } else if(_urlCust){
-      showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP);
-    }
-  }).catch(function(err){flash('Chyba: '+err.message,true)});
-}
-
-/* ══════════════════════════════════════
-   FIREBASE SDK — real-time sync (when available)
+   FIREBASE SDK — init (no listeners until auth)
    ══════════════════════════════════════ */
 try{
   firebase.initializeApp({
@@ -319,40 +346,41 @@ try{
     appId:"1:1888708933:web:0d53b4a2dce008e527762c"
   });
   db=firebase.database();
+  fbReady=true;
+}catch(e){document.getElementById('syncStatus').textContent='\u{1F7E1}'}
+
+function initApp(){
+  if(!db)return;
   ridesRef=db.ref('rides');
   var customersRef=db.ref('customers');
-  fbReady=true;
-
   ridesRef.on('value',function(snapshot){
-    var data=snapshot.val();
-    rides=[];
-    if(data){
-      var keys=Object.keys(data);
-      for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}
-      rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)});
-    }
-    renderAll();
-    document.getElementById('syncStatus').textContent='\u{1F7E2}';
+    var data=snapshot.val();rides=[];
+    if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)})}
+    renderAll();document.getElementById('syncStatus').textContent='\u{1F7E2}';
   });
-
   customersRef.on('value',function(snapshot){
     var data=snapshot.val();regCustomers=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var c=data[keys[i]];c._key=keys[i];regCustomers.push(c)}}
     regCustomers.sort(function(a,b){return(a.name||'').localeCompare(b.name||'','cs')});
   });
-
-  db.ref('.info/connected').on('value',function(snap){
-    document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}';
-  });
-}catch(e){
-  // Firebase SDK not loaded — REST only mode
-  document.getElementById('syncStatus').textContent='\u{1F7E1}';
-  if(!_hasUrlParams)loadRidesREST();
+  db.ref('.info/connected').on('value',function(snap){document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}'});
+  if(_hasUrlParams){
+    loadRidesREST().then(function(){
+      if(_urlCar){
+        var ex=findActiveByCarName(_urlCar);
+        var p1=ex?(function(){ex.end=new Date().toISOString();return saveRideREST(ex)})():Promise.resolve();
+        p1.then(function(){var ev=document.getElementById('eventName').value.trim();var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev};return saveRideREST(nr)}).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);loadRidesREST()});
+      } else if(_urlCust){showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP)}
+    }).catch(function(err){flash('Chyba: '+err.message,true)});
+  }
+  if(!_hasUrlParams){loadRidesREST();loadCustomersREST()}
+  setInterval(function(){loadRidesREST();loadCustomersREST()},5000);
 }
-
-/* ── REST polling: refresh data every 5s as fallback for SDK issues ── */
-if(!_hasUrlParams){loadRidesREST();loadCustomersREST()}
-setInterval(function(){loadRidesREST();loadCustomersREST()},5000);
+function doAuth(){
+  if(!firebase.auth){initApp();return}
+  firebase.auth().signInAnonymously().then(function(){initApp()}).catch(function(e){console.warn('Auth:',e);initApp()});
+}
+if(!pinLocked)doAuth();
 
 /* ── Write helpers — SDK if available, REST fallback ── */
 function cleanRide(r){var o={};for(var k in r)if(k!=='_key'&&r.hasOwnProperty(k))o[k]=r[k];return o}
@@ -696,7 +724,7 @@ function pickCustomer(idx){
 var EMAILJS_PK='B8AOopYxajiDIXEJT';
 var EMAILJS_SVC='service_dqlpkln';
 var EMAILJS_TPL='template_9pecuuf';
-var SURVEY_BASE='https://raw.githack.com/dfwvhfnw7y-coder/Zku-ebn-j-zdy/main/dotaznik.html';
+var SURVEY_BASE='https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/dotaznik.html';
 
 try{emailjs.init(EMAILJS_PK)}catch(e){console.warn('EmailJS init failed',e)}
 
