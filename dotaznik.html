@@ -245,6 +245,9 @@ textarea::placeholder{color:var(--mb-muted)}
   <p>Vaše hodnocení nám pomáhá zlepšovat služby.<br>Přejeme Vám krásný den.</p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.js"></script>
 <script>
 // ── Parse URL params ──
 var params=new URLSearchParams(location.search);
@@ -252,6 +255,22 @@ var rideId=params.get('rid');
 var carName=params.get('car');
 var customerName=params.get('name');
 var FB_URL='https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app';
+
+// Init Firebase
+var db=null;
+try{
+  firebase.initializeApp({
+    apiKey:"AIzaSyAWTBwFNJ2x4_UbHjD1YhS1gf40onwleLQ",
+    authDomain:"testovaci-jizdy.firebaseapp.com",
+    databaseURL:FB_URL,
+    projectId:"testovaci-jizdy",
+    storageBucket:"testovaci-jizdy.firebasestorage.app",
+    messagingSenderId:"1888708933",
+    appId:"1:1888708933:web:0d53b4a2dce008e527762c"
+  });
+  db=firebase.database();
+  firebase.auth().signInAnonymously().catch(function(e){console.warn('Auth:',e)});
+}catch(e){console.warn('Firebase init failed',e)}
 
 if(!rideId){
   document.getElementById('formWrap').style.display='none';
@@ -312,19 +331,30 @@ function submitForm(){
   };
 
   // Save to Firebase under rides/{rideId}/feedback
-  fetch(FB_URL+'/rides/'+rideId+'/feedback.json',{
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  }).then(function(r){
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    document.getElementById('formWrap').style.display='none';
-    document.getElementById('thankyou').style.display='block';
-  }).catch(function(e){
-    console.error(e);
-    alert('Nepodařilo se odeslat. Zkuste to prosím znovu.');
-    btn.disabled=false;btn.textContent='Odeslat hodnocení';
-  });
+  if(db){
+    db.ref('rides/'+rideId+'/feedback').set(data).then(function(){
+      document.getElementById('formWrap').style.display='none';
+      document.getElementById('thankyou').style.display='block';
+    }).catch(function(e){
+      console.error(e);
+      alert('Nepodařilo se odeslat. Zkuste to prosím znovu.');
+      btn.disabled=false;btn.textContent='Odeslat hodnocení';
+    });
+  } else {
+    fetch(FB_URL+'/rides/'+rideId+'/feedback.json',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    }).then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      document.getElementById('formWrap').style.display='none';
+      document.getElementById('thankyou').style.display='block';
+    }).catch(function(e){
+      console.error(e);
+      alert('Nepodařilo se odeslat. Zkuste to prosím znovu.');
+      btn.disabled=false;btn.textContent='Odeslat hodnocení';
+    });
+  }
 }
 </script>
 </body>
