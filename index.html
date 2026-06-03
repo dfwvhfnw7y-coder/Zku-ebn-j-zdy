@@ -245,7 +245,7 @@ document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
 var VERSION_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/version.json";
-var rides=[],regCustomers=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null;
+var rides=[],regCustomers=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null,_pendingRide=null;
 var fbReady=false,db=null,ridesRef=null;
 
 /* ── PIN Lock ── */
@@ -314,7 +314,7 @@ function loadRidesREST(){
       for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}
       rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)});
     }
-    renderAll();
+    renderAll();_pendingRide=null;
     return rides;
   });
 }
@@ -359,7 +359,7 @@ function initApp(){
   ridesRef.on('value',function(snapshot){
     var data=snapshot.val();rides=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)})}
-    renderAll();document.getElementById('syncStatus').textContent='\u{1F7E2}';
+    renderAll();document.getElementById('syncStatus').textContent='\u{1F7E2}';_pendingRide=null;
   });
   customersRef.on('value',function(snapshot){
     var data=snapshot.val();regCustomers=[];
@@ -443,8 +443,9 @@ function showCustConfirm(name,em,ph,ad,op){
 }
 
 /* ── Core ── */
-function getActiveRides(){var a=[];for(var i=0;i<rides.length;i++)if(!rides[i].end)a.push(rides[i]);return a}
-function findRideByKey(k){for(var i=0;i<rides.length;i++)if(rides[i]._key===k)return rides[i];return null}
+function getActiveRides(){var a=[];for(var i=0;i<rides.length;i++)if(!rides[i].end)a.push(rides[i]);if(_pendingRide&&!_pendingRide.end&&!findRideByKeyInArray(rides,_pendingRide._key))a.push(_pendingRide);return a}
+function findRideByKey(k){var r=findRideByKeyInArray(rides,k);if(r)return r;if(_pendingRide&&_pendingRide._key===k)return _pendingRide;return null}
+function findRideByKeyInArray(arr,k){for(var i=0;i<arr.length;i++)if(arr[i]._key===k)return arr[i];return null}
 function findActiveByCarName(n){if(!n)return null;var l=n.toLowerCase();for(var i=0;i<rides.length;i++)if(!rides[i].end&&rides[i].car&&rides[i].car.toLowerCase()===l)return rides[i];return null}
 function custName(c){return typeof c==='string'?c:c.name}
 function findActiveRidesWithCustomer(n){
@@ -460,8 +461,9 @@ function handleCar(name){
   var ev=document.getElementById('eventName').value.trim();
   var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev};
   var added=fbAdd(nr);lastActiveCarId=added._key;
-  rides.unshift(added);renderAll();
+  _pendingRide=added;
   flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+name);
+  renderAll();
   if(!fbReady)loadRidesREST();
 }
 function handleCustomer(name,email,phone,addr,op){
