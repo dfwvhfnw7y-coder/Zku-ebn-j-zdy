@@ -455,13 +455,12 @@ function findActiveRidesWithCustomer(n){
 }
 
 function handleCar(name){
-  // Close previous ride of same car (if any)
   var ex=findActiveByCarName(name);
   if(ex){ex.end=new Date().toISOString();fbWrite(ex)}
-  // Always start new ride
   var ev=document.getElementById('eventName').value.trim();
   var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev};
   var added=fbAdd(nr);lastActiveCarId=added._key;
+  rides.unshift(added);renderAll();
   flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+name);
   if(!fbReady)loadRidesREST();
 }
@@ -482,7 +481,7 @@ function handleCustomer(name,email,phone,addr,op){
   var act=getActiveRides();if(!act.length){flash('\u26A0 Nejdřív naskenuj auto!',true);return}
   var tgt=null;if(lastActiveCarId){tgt=findRideByKey(lastActiveCarId);if(tgt&&tgt.end)tgt=null}
   if(!tgt)tgt=act[0];if(!tgt.customers)tgt.customers=[];
-  tgt.customers.push(obj);lastActiveCarId=tgt._key;fbWrite(tgt);flash('\u{1F464} '+name+' \u2192 '+tgt.car);
+  tgt.customers.push(obj);lastActiveCarId=tgt._key;fbWrite(tgt);renderAll();flash('\u{1F464} '+name+' \u2192 '+tgt.car);
   if(!fbReady)loadRidesREST();
 }
 function endRide(key){var r=findRideByKey(key);if(r&&!r.end){r.end=new Date().toISOString();fbWrite(r);flash('\u{1F3C1} '+r.car);if(!fbReady)loadRidesREST()}}
