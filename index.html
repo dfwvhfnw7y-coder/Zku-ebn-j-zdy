@@ -297,10 +297,13 @@ if(_hasUrlParams)history.replaceState(null,'',location.pathname);
    Used for URL param handling (Fotoaparát opens new tab)
    ══════════════════════════════════════ */
 function fbRest(method,path,data){
-  var url=FB_URL+'/'+path+'.json';
-  var opts={method:method,headers:{'Content-Type':'application/json'}};
-  if(data)opts.body=JSON.stringify(data);
-  return fetch(url,opts).then(function(r){return r.json()});
+  var p=firebase.auth&&firebase.auth().currentUser?firebase.auth().currentUser.getIdToken():Promise.resolve(null);
+  return p.then(function(token){
+    var url=FB_URL+'/'+path+'.json'+(token?'?auth='+token:'');
+    var opts={method:method,headers:{'Content-Type':'application/json'}};
+    if(data)opts.body=JSON.stringify(data);
+    return fetch(url,opts).then(function(r){return r.json()});
+  });
 }
 
 function loadRidesREST(){
@@ -646,7 +649,7 @@ function saveCustomer(name,email,phone,addr,op){
   }
   var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',op:op||'',event:ev,created:new Date().toISOString()};
   if(fbReady&&db){db.ref('customers').push(obj)}
-  else{fetch(FB_URL+'/customers.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)})}
+  else{fbRest('POST','customers',obj)}
 }
 function customerRideCount(name){
   var c=0;
