@@ -80,6 +80,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* Per-car table */
 .car-table{width:100%;border-collapse:collapse}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -20px;padding:0 20px}
 .car-table th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:2px solid var(--border)}
 .car-table td{padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px}
 .car-table tr:last-child td{border-bottom:none}
@@ -249,6 +250,21 @@ function render(){
     h+='<div class="intent-pct">'+pct+'%</div></div>';
   }
   h+='</div>';
+
+  // ── All individual responses ──
+  h+='<div class="card"><h2>Všechny odpovědi ('+total+')</h2><div class="table-scroll">';
+  h+='<table class="car-table"><thead><tr><th>Zákazník</th><th>Model</th><th style="text-align:center">⭐</th><th>Nákupní záměr</th><th>Komentář</th></tr></thead><tbody>';
+  var sorted=rides.slice().sort(function(a,b){return(b.feedback.submitted_at||'').localeCompare(a.feedback.submitted_at||'')});
+  for(var i=0;i<sorted.length;i++){
+    var r=sorted[i],fb=r.feedback;
+    var pi=fb.purchase_intent||'not_answered';
+    h+='<tr><td class="car-cell">'+esc(fb.customer_name||'Anonym')+'</td>';
+    h+='<td>'+esc(r.car||'')+'</td>';
+    h+='<td class="num-cell" style="color:var(--gold)">'+(fb.overall_rating||'-')+'</td>';
+    h+='<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(piColors[pi]||'#ccc')+';margin-right:6px;vertical-align:middle"></span><span style="font-size:12px">'+(piLabels[pi]||pi)+'</span></td>';
+    h+='<td style="font-size:12px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(fb.comment?esc(fb.comment):'—')+'</td></tr>';
+  }
+  h+='</tbody></table></div></div>';
 
   // ── Comments ──
   if(comments.length){
