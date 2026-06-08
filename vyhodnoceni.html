@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Vyhodnocení dotazníků — Mercedes-Benz</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f3ef;--card:#fff;--mb:#0d0d0d;--accent:#00adef;
+  --gold:#d4a017;--green:#2d8a4e;--red:#c0392b;--orange:#e67e22;
+  --text:#1a1a1a;--muted:#6b6b6b;--border:#e0dcd6;--light:#f9f8f5;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 16px 60px}
+.wrap{max-width:720px;margin:0 auto}
+
+/* Header */
+.hdr{text-align:center;padding:32px 0 8px}
+.hdr svg{width:40px;height:40px;margin-bottom:8px}
+.hdr h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--mb)}
+.hdr .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* Event filter */
+.filter{display:flex;gap:8px;margin:20px 0 24px;flex-wrap:wrap;justify-content:center}
+.filter-btn{padding:6px 16px;border:1.5px solid var(--border);border-radius:20px;background:var(--card);font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--muted)}
+.filter-btn.active{border-color:var(--mb);background:var(--mb);color:#fff}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center}
+.stat .num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--mb)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 20px;margin-bottom:16px}
+.card h2{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:16px;color:var(--mb)}
+
+/* Bar chart */
+.bar-row{display:flex;align-items:center;margin-bottom:10px;gap:10px}
+.bar-label{font-size:12px;font-weight:600;min-width:100px;text-align:right;color:var(--text)}
+.bar-track{flex:1;height:24px;background:var(--light);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width .6s ease;display:flex;align-items:center;padding:0 8px}
+.bar-val{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.bar-val-out{font-size:11px;font-weight:600;color:var(--muted);margin-left:8px;white-space:nowrap}
+
+/* Stars */
+.stars-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.stars-row .car-name{font-size:13px;font-weight:600;min-width:120px}
+.stars-row .stars{display:flex;gap:2px}
+.stars-row .star{width:16px;height:16px;color:var(--border)}
+.stars-row .star.on{color:var(--gold)}
+.stars-row .avg{font-size:12px;color:var(--muted);margin-left:4px}
+
+/* Intent */
+.intent-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.intent-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.intent-label{font-size:13px;flex:1}
+.intent-count{font-size:13px;font-weight:700;min-width:30px;text-align:right}
+.intent-pct{font-size:11px;color:var(--muted);min-width:40px;text-align:right}
+
+/* Comments */
+.comment{border-bottom:1px solid var(--border);padding:14px 0}
+.comment:last-child{border-bottom:none}
+.comment .cm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.comment .cm-name{font-size:13px;font-weight:600}
+.comment .cm-car{font-size:11px;color:var(--accent);background:rgba(0,173,239,.08);padding:2px 8px;border-radius:10px}
+.comment .cm-text{font-size:13px;color:var(--text);line-height:1.5}
+.comment .cm-stars{font-size:12px;color:var(--gold);margin-bottom:4px}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:var(--muted)}
+.loading .spin{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--mb);border-radius:50%;animation:sp .7s linear infinite;margin-bottom:12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Empty */
+.empty{text-align:center;padding:40px 20px}
+.empty h3{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px}
+.empty p{font-size:13px;color:var(--muted)}
+
+/* Per-car table */
+.car-table{width:100%;border-collapse:collapse}
+.car-table th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:2px solid var(--border)}
+.car-table td{padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px}
+.car-table tr:last-child td{border-bottom:none}
+.car-table .num-cell{text-align:center;font-weight:700;font-size:14px}
+.car-table .car-cell{font-weight:600}
+
+/* Responsive */
+@media(max-width:480px){
+  .stats{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .stat .num{font-size:24px}
+  .bar-label{min-width:70px;font-size:11px}
+  .stars-row .car-name{min-width:80px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="23" stroke="#0d0d0d" stroke-width="1.5" fill="none"/>
+      <path d="M24 6 L28 24 L42 36 L24 28 L6 36 L20 24 Z" fill="#0d0d0d"/>
+    </svg>
+    <h1>Vyhodnocení dotazníků</h1>
+    <p class="sub">S. & W. Automobily s.r.o. — Mercedes-Benz</p>
+  </div>
+
+  <div class="filter" id="filterBar"></div>
+
+  <div id="content">
+    <div class="loading"><div class="spin"></div><br>Načítám data…</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.js"></script>
+<script>
+var FB_URL='https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app';
+var allRides=[],selectedEvent='all';
+
+firebase.initializeApp({
+  apiKey:"AIzaSyAWTBwFNJ2x4_UbHjD1YhS1gf40onwleLQ",
+  authDomain:"testovaci-jizdy.firebaseapp.com",
+  databaseURL:FB_URL,
+  projectId:"testovaci-jizdy",
+  storageBucket:"testovaci-jizdy.firebasestorage.app",
+  messagingSenderId:"1888708933",
+  appId:"1:1888708933:web:0d53b4a2dce008e527762c"
+});
+
+firebase.auth().signInAnonymously().then(function(){
+  firebase.database().ref('rides').on('value',function(snap){
+    var data=snap.val();allRides=[];
+    if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(r&&r.feedback)allRides.push(r)}}
+    buildFilters();render();
+  });
+}).catch(function(e){
+  document.getElementById('content').innerHTML='<div class="empty"><h3>Chyba přihlášení</h3><p>'+e.message+'</p></div>';
+});
+
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function buildFilters(){
+  var evs={};
+  for(var i=0;i<allRides.length;i++){var e=allRides[i].event||'Bez názvu';evs[e]=(evs[e]||0)+1}
+  var bar=document.getElementById('filterBar');
+  var h='<button class="filter-btn'+(selectedEvent==='all'?' active':'')+'" onclick="setFilter(\'all\')">Vše ('+allRides.length+')</button>';
+  var keys=Object.keys(evs).sort();
+  for(var i=0;i<keys.length;i++){
+    h+='<button class="filter-btn'+(selectedEvent===keys[i]?' active':'')+'" onclick="setFilter(\''+esc(keys[i])+'\')">'+esc(keys[i])+' ('+evs[keys[i]]+')</button>';
+  }
+  bar.innerHTML=h;
+}
+
+function setFilter(ev){selectedEvent=ev;buildFilters();render()}
+
+function getFiltered(){
+  if(selectedEvent==='all')return allRides;
+  return allRides.filter(function(r){return(r.event||'Bez názvu')===selectedEvent});
+}
+
+function render(){
+  var rides=getFiltered();
+  if(!rides.length){
+    document.getElementById('content').innerHTML='<div class="empty"><h3>Žádné vyplněné dotazníky</h3><p>Dotazníky se zde zobrazí po vyplnění zákazníky.</p></div>';
+    return;
+  }
+
+  var total=rides.length;
+  var sumOverall=0,sumComfort=0,sumHandling=0,sumTech=0,sumInterior=0,sumValue=0;
+  var intents={},carData={},comments=[];
+
+  for(var i=0;i<rides.length;i++){
+    var r=rides[i],fb=r.feedback;
+    sumOverall+=fb.overall_rating||0;
+    sumComfort+=fb.comfort||0;sumHandling+=fb.handling||0;
+    sumTech+=fb.tech||0;sumInterior+=fb.interior||0;sumValue+=fb.value_for_money||0;
+
+    var pi=fb.purchase_intent||'not_answered';
+    intents[pi]=(intents[pi]||0)+1;
+
+    var car=r.car||'Neznámé';
+    if(!carData[car])carData[car]={count:0,sum:0,sumC:0,sumH:0,sumT:0,sumI:0,sumV:0};
+    carData[car].count++;carData[car].sum+=(fb.overall_rating||0);
+    carData[car].sumC+=(fb.comfort||0);carData[car].sumH+=(fb.handling||0);
+    carData[car].sumT+=(fb.tech||0);carData[car].sumI+=(fb.interior||0);carData[car].sumV+=(fb.value_for_money||0);
+
+    if(fb.comment){comments.push({name:fb.customer_name||'Anonym',car:car,text:fb.comment,rating:fb.overall_rating,date:fb.submitted_at})}
+  }
+
+  var avgO=(sumOverall/total).toFixed(1);
+  var avgC=(sumComfort/total).toFixed(1),avgH=(sumHandling/total).toFixed(1);
+  var avgT=(sumTech/total).toFixed(1),avgI=(sumInterior/total).toFixed(1),avgV=(sumValue/total).toFixed(1);
+
+  // Purchase intent stats
+  var piLabels={definitely:'Určitě koupím',probably:'Vážně zvažuji',considering:'Porovnávám',unlikely:'Spíše ne',just_looking:'Jen svezení',not_answered:'Bez odpovědi'};
+  var piColors={definitely:'#2d8a4e',probably:'#27ae60',considering:'#e67e22',unlikely:'#c0392b',just_looking:'#6b6b6b',not_answered:'#ccc'};
+  var piOrder=['definitely','probably','considering','unlikely','just_looking','not_answered'];
+
+  // Positive intent %
+  var positive=(intents.definitely||0)+(intents.probably||0);
+  var positivePct=total?Math.round(positive/total*100):0;
+
+  var h='';
+
+  // ── Stats row ──
+  h+='<div class="stats">';
+  h+='<div class="stat"><div class="num">'+total+'</div><div class="lbl">Odpovědí</div></div>';
+  h+='<div class="stat"><div class="num" style="color:var(--gold)">'+avgO+'</div><div class="lbl">Průměr ⭐</div></div>';
+  h+='<div class="stat"><div class="num" style="color:var(--green)">'+positivePct+'%</div><div class="lbl">Zájem o koupi</div></div>';
+  h+='</div>';
+
+  // ── Category ratings ──
+  h+='<div class="card"><h2>Hodnocení oblastí (průměr 1–10)</h2>';
+  var cats=[{l:'Jízdní komfort',v:avgC},{l:'Jízdní vlastnosti',v:avgH},{l:'Technologie',v:avgT},{l:'Interiér',v:avgI},{l:'Cena / hodnota',v:avgV}];
+  for(var i=0;i<cats.length;i++){
+    var pct=cats[i].v*10;
+    var clr=pct>=70?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+    h+='<div class="bar-row"><div class="bar-label">'+cats[i].l+'</div>';
+    h+='<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+clr+'"><span class="bar-val">'+cats[i].v+'</span></div></div></div>';
+  }
+  h+='</div>';
+
+  // ── Per car ──
+  var carKeys=Object.keys(carData).sort(function(a,b){return(carData[b].sum/carData[b].count)-(carData[a].sum/carData[a].count)});
+  h+='<div class="card"><h2>Hodnocení podle modelu</h2>';
+  h+='<table class="car-table"><thead><tr><th>Model</th><th style="text-align:center">Odpovědí</th><th style="text-align:center">⭐ Celkový</th><th style="text-align:center">Komfort</th><th style="text-align:center">Jízda</th><th style="text-align:center">Tech</th></tr></thead><tbody>';
+  for(var i=0;i<carKeys.length;i++){
+    var k=carKeys[i],d=carData[k];
+    h+='<tr><td class="car-cell">'+esc(k)+'</td>';
+    h+='<td class="num-cell">'+d.count+'</td>';
+    h+='<td class="num-cell" style="color:var(--gold)">'+(d.sum/d.count).toFixed(1)+'</td>';
+    h+='<td class="num-cell">'+(d.sumC/d.count).toFixed(1)+'</td>';
+    h+='<td class="num-cell">'+(d.sumH/d.count).toFixed(1)+'</td>';
+    h+='<td class="num-cell">'+(d.sumT/d.count).toFixed(1)+'</td></tr>';
+  }
+  h+='</tbody></table></div>';
+
+  // ── Purchase intent ──
+  h+='<div class="card"><h2>Pravděpodobnost nákupu</h2>';
+  for(var i=0;i<piOrder.length;i++){
+    var k=piOrder[i],cnt=intents[k]||0;if(!cnt)continue;
+    var pct=Math.round(cnt/total*100);
+    h+='<div class="intent-row"><div class="intent-dot" style="background:'+piColors[k]+'"></div>';
+    h+='<div class="intent-label">'+piLabels[k]+'</div>';
+    h+='<div class="intent-count">'+cnt+'</div>';
+    h+='<div class="intent-pct">'+pct+'%</div></div>';
+  }
+  h+='</div>';
+
+  // ── Comments ──
+  if(comments.length){
+    comments.sort(function(a,b){return(b.date||'').localeCompare(a.date||'')});
+    h+='<div class="card"><h2>Komentáře zákazníků ('+comments.length+')</h2>';
+    for(var i=0;i<comments.length;i++){
+      var c=comments[i];
+      h+='<div class="comment"><div class="cm-head"><span class="cm-name">'+esc(c.name)+'</span><span class="cm-car">'+esc(c.car)+'</span></div>';
+      if(c.rating)h+='<div class="cm-stars">'+'★'.repeat(c.rating)+'☆'.repeat(5-c.rating)+'</div>';
+      h+='<div class="cm-text">'+esc(c.text)+'</div></div>';
+    }
+    h+='</div>';
+  }
+
+  document.getElementById('content').innerHTML=h;
+}
+</script>
+</body>
+</html>
