@@ -240,7 +240,7 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-var APP_VERSION=37;
+var APP_VERSION=38;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
@@ -427,6 +427,36 @@ function fbDeleteAll(){
   else fbRest('DELETE','rides');
 }
 
+/* ── REVIZE 02B: atomické zápisy přes transaction() (bez změny datového modelu) ── */
+function addCustomerTx(ride,obj){
+  if(fbReady&&ridesRef&&ride._key){
+    ridesRef.child(ride._key).transaction(function(cur){
+      if(cur===null)return cur;                 // jízda neexistuje -> nech Firebase rozhodnout
+      if(!cur.customers)cur.customers=[];
+      for(var i=0;i<cur.customers.length;i++){  // ochrana proti duplicitě (jméno+email) -> abort
+        var c=cur.customers[i],cn=(typeof c==='object'?c.name:c);
+        if((cn||'').toLowerCase()===(obj.name||'').toLowerCase()
+           &&(typeof c==='object'?(c.email||''):'')===(obj.email||''))return;
+      }
+      cur.customers.push(obj);
+      return cur;
+    });
+  } else {                                      // fallback (offline / SDK není) — původní chování
+    if(!ride.customers)ride.customers=[];
+    ride.customers.push(obj);
+    saveRideREST(ride);
+  }
+}
+function endRideTx(key){
+  if(fbReady&&ridesRef){
+    ridesRef.child(key).transaction(function(cur){
+      if(cur===null||cur.end)return cur;        // už ukončeno / neexistuje
+      cur.end=new Date().toISOString();
+      return cur;
+    });
+  } else { var r=findRideByKey(key);if(r){r.end=new Date().toISOString();saveRideREST(r)} }
+}
+
 /* ── UI ── */
 function switchTab(id){
   var p=['Scan','Gen','Log'],t=['tabScan','tabGen','tabLog'],d=['scan','gen','log'];
@@ -480,7 +510,7 @@ function findActiveRidesWithCustomer(n){
 
 function handleCar(name){
   var ex=findActiveByCarName(name);
-  if(ex){ex.end=new Date().toISOString();fbWrite(ex)}
+  if(ex){endRideTx(ex._key)}
   var ev=document.getElementById('eventName').value.trim();
   var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev};
   var added=fbAdd(nr);lastActiveCarId=added._key;
@@ -494,23 +524,23 @@ function handleCustomer(name,email,phone,addr,op){
   var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',op:op||''};
   if(cr.length>0){
     var now=new Date().toISOString();
-    for(var i=0;i<cr.length;i++){cr[i].end=now;fbWrite(cr[i])}
+    for(var i=0;i<cr.length;i++){cr[i].end=now;endRideTx(cr[i]._key)}
     var rem=getActiveRides();
     if(rem.length>0){
       var tgt=null;if(lastActiveCarId){tgt=findRideByKey(lastActiveCarId);if(!tgt||tgt.end)tgt=null}
       if(!tgt)tgt=rem[0];if(!tgt.customers)tgt.customers=[];
-      tgt.customers.push(obj);lastActiveCarId=tgt._key;fbWrite(tgt);flash('\u{1F504} '+name+' \u2192 '+tgt.car);
+      lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);flash('\u{1F504} '+name+' \u2192 '+tgt.car);
     } else flash('\u{1F3C1} Ukončeno: '+name);
     if(!fbReady)loadRidesREST();return;
   }
   var act=getActiveRides();if(!act.length){flash('\u26A0 Nejdřív naskenuj auto!',true);return}
   var tgt=null;if(lastActiveCarId){tgt=findRideByKey(lastActiveCarId);if(tgt&&tgt.end)tgt=null}
   if(!tgt)tgt=act[0];if(!tgt.customers)tgt.customers=[];
-  tgt.customers.push(obj);lastActiveCarId=tgt._key;fbWrite(tgt);renderAll();flash('\u{1F464} '+name+' \u2192 '+tgt.car);
+  lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);renderAll();flash('\u{1F464} '+name+' \u2192 '+tgt.car);
   if(!fbReady)loadRidesREST();
 }
-function endRide(key){var r=findRideByKey(key);if(r&&!r.end){r.end=new Date().toISOString();fbWrite(r);flash('\u{1F3C1} '+r.car);if(!fbReady)loadRidesREST()}}
-function endAllRides(){var a=getActiveRides();if(!a.length)return;if(!confirm('Ukončit '+a.length+' jízd?'))return;var n=new Date().toISOString();for(var i=0;i<a.length;i++){a[i].end=n;fbWrite(a[i])}flash('Vše ukončeno');if(!fbReady)loadRidesREST()}
+function endRide(key){var r=findRideByKey(key);if(r&&!r.end){endRideTx(key);flash('\u{1F3C1} '+r.car);if(!fbReady)loadRidesREST()}}
+function endAllRides(){var a=getActiveRides();if(!a.length)return;if(!confirm('Ukončit '+a.length+' jízd?'))return;for(var i=0;i<a.length;i++){endRideTx(a[i]._key)}flash('Vše ukončeno');if(!fbReady)loadRidesREST()}
 function clearAll(){if(!confirm('Smazat VŠECHNA data?'))return;if(!confirm('Opravdu?'))return;fbDeleteAll();flash('Smazáno');rides=[];renderAll()}
 function manualAdd(){var c=document.getElementById('manualCar').value.trim(),u=document.getElementById('manualCust').value.trim(),op=document.getElementById('manualOP').value.trim(),em=document.getElementById('manualEmail').value.trim(),ph=document.getElementById('manualPhone').value.trim(),ad=document.getElementById('manualAddr').value.trim();if(!c&&!u){flash('Zadej vůz/zákazníka',true);return}if(c){handleCar(c);document.getElementById('manualCar').value=''}if(u){handleCustomer(u,em,ph,ad,op);saveCustomer(u,em,ph,ad,op);document.getElementById('manualCust').value='';document.getElementById('manualOP').value='';document.getElementById('manualEmail').value='';document.getElementById('manualPhone').value='';document.getElementById('manualAddr').value=''}}
 function parseQRData(data,mode){try{var u=new URL(data);var p=u.searchParams;if(p.get('car'))return{type:'car',value:p.get('car')};if(p.get('customer'))return{type:'customer',value:p.get('customer'),email:p.get('email')||'',phone:p.get('phone')||'',addr:p.get('addr')||'',op:p.get('op')||''}}catch(e){}return{type:mode,value:data,email:'',phone:'',addr:'',op:''}}
