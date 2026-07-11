@@ -240,7 +240,7 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-var APP_VERSION=34;
+var APP_VERSION=35;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
@@ -376,8 +376,14 @@ function initApp(){
       } else if(_urlCust){showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP)}
     }).catch(function(err){flash('Chyba: '+err.message,true)});
   }
-  if(!_hasUrlParams){loadRidesREST();loadCustomersREST()}
-  setInterval(function(){loadRidesREST();loadCustomersREST()},5000);
+  // REVIZE 01: REST nacitani jen jako fallback, kdyz Firebase SDK neni dostupne.
+  // Kdyz fbReady === true, o rides i customers se stara ridesRef.on / customersRef.on
+  // (real-time listenery vyse). Soubezny REST polling byl redundantni a zpusoboval
+  // prekreslovani UI + race s _pendingRide. Vetev _hasUrlParams (QR/fotoaparat) beze zmeny.
+  if(!fbReady){
+    if(!_hasUrlParams){loadRidesREST();loadCustomersREST()}
+    setInterval(function(){loadRidesREST();loadCustomersREST()},5000);
+  }
 }
 function doAuth(){
   if(!firebase.auth){initApp();return}
