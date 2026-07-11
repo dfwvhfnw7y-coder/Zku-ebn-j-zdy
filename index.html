@@ -240,7 +240,7 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-var APP_VERSION=35;
+var APP_VERSION=36;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
@@ -267,19 +267,36 @@ function pinKey(n){
 }
 function pinBack(){if(pinEntry.length>0){pinEntry=pinEntry.slice(0,-1);for(var i=0;i<4;i++){var d=document.getElementById('pd'+i);d.classList.toggle('filled',i<pinEntry.length);d.classList.remove('error')}}}
 
-/* ── Version check ── */
+/* ── Version check (REVIZE 03: iOS Home Screen aktualizace) ── */
+var _updBannerShown=false;
 function checkUpdate(){
   fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(d){
     if(d&&d.version>APP_VERSION){
+      // REVIZE 03: bezpecna JEDNORAZOVA automaticka aktualizace (guard pres sessionStorage,
+      // aby nevznikla smycka, kdyby standalone cache stale servirovala starou verzi).
+      try{
+        if(sessionStorage.getItem('upd')!==String(d.version)){
+          sessionStorage.setItem('upd',String(d.version));
+          location.replace(BASE_URL+'?v='+d.version+'&t='+Date.now());
+          return;
+        }
+      }catch(e){}
+      // Fallback: viditelny pruh (kdyz auto-reload uz probehl / neni k dispozici sessionStorage).
+      if(_updBannerShown)return;
+      _updBannerShown=true;
       var b=document.createElement('div');
       b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#00c9a7;color:#000;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:center;align-items:center;gap:8px';
       b.innerHTML='🔄 Nová verze v'+d.version+' je k dispozici <span style="background:#000;color:#fff;padding:4px 12px;border-radius:8px;font-size:12px">Aktualizovat</span>';
-      b.onclick=function(){location.href=BASE_URL+'?v='+d.version+'&t='+Date.now();setTimeout(function(){location.reload(true)},100)};
+      b.onclick=function(){location.replace(BASE_URL+'?v='+d.version+'&t='+Date.now())};
       document.body.prepend(b);
     }
   }).catch(function(){});
 }
 setTimeout(checkUpdate,2000);
+// REVIZE 03: znovu zkontrolovat pri navratu aplikace do popredi (iOS standalone
+// stranku pri probuzeni z pozadi znovu nenacte -> jednorazovy check nestacil).
+document.addEventListener('visibilitychange',function(){if(!document.hidden)checkUpdate();});
+window.addEventListener('pageshow',function(){checkUpdate();});
 
 /* ── Event name ── */
 function saveEventName(){try{localStorage.setItem('sw-event',document.getElementById('eventName').value)}catch(e){}}
