@@ -72,6 +72,8 @@ body{padding-bottom:80px}
 .ride .dur{display:inline-block;font-size:11px;background:var(--card2);padding:2px 8px;border-radius:20px;margin-top:6px;color:var(--text2)}
 .empty{text-align:center;padding:40px 20px;color:var(--text2)}
 .qr-block{text-align:center;margin:16px 0}
+#qrCarContainer,#qrCustContainer{display:inline-block;background:#fff;padding:20px;border-radius:12px;line-height:0}
+#qrCarContainer canvas,#qrCarContainer img,#qrCustContainer canvas,#qrCustContainer img{display:block;width:260px;height:260px}
 .qr-label{font-size:13px;color:var(--text2);margin-top:8px;white-space:pre-line}
 #printArea{display:none}
 @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
@@ -195,7 +197,8 @@ body{padding-bottom:80px}
     <input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC" style="margin-bottom:12px">
     <button class="btn btn-accent" onclick="generateQR('car')">Vytvořit QR</button>
     <div id="qrCarOutput" style="display:none"><div class="qr-block"><div id="qrCarContainer"></div><div class="qr-label" id="qrCarName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button></div>
+    <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button>
+    <button class="btn btn-outline btn-sm" onclick="shareQR('car')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div>
   </div>
   <div class="card"><h3>👤 QR — zákazník</h3>
     <input class="inp" id="genCustInput" placeholder="Jméno zákazníka" style="margin-bottom:8px">
@@ -242,7 +245,7 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-var APP_VERSION=39;
+var APP_VERSION=40;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
@@ -664,7 +667,7 @@ function generateQR(type){
     saveCustomer(val,em,ph,ad,op);
   }
   var c=document.getElementById(cid);c.innerHTML='';
-  new QRCode(c,{text:url,width:256,height:256,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H,margin:4});
+  new QRCode(c,{text:url,width:512,height:512,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M,margin:4});
   var lbl=(type==='car'?'\u{1F697} ':'\u{1F464} ')+val;
   if(type==='customer'){var extras=[];}
   document.getElementById(nid).textContent=lbl;document.getElementById(oid).style.display='block';
