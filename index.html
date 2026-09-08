@@ -245,7 +245,7 @@ body{padding-bottom:80px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-var APP_VERSION=40;
+var APP_VERSION=41;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
@@ -672,10 +672,12 @@ function generateQR(type){
   if(type==='customer'){var extras=[];}
   document.getElementById(nid).textContent=lbl;document.getElementById(oid).style.display='block';
 }
+/* v41: bílá quiet zone zapečená přímo do obrázku (tisk i PNG), nezávisle na okolí */
+function qrPadCanvas(el){var cv=el.querySelector('canvas');if(!cv)return null;var pad=Math.round(cv.width/8);var pc=document.createElement('canvas');pc.width=cv.width+pad*2;pc.height=cv.height+pad*2;var x=pc.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,pc.width,pc.height);x.drawImage(cv,pad,pad);return pc}
 function printQR(type){
   var cid=type==='car'?'qrCarContainer':'qrCustContainer',nid=type==='car'?'qrCarName':'qrCustName',lbl=type==='car'?'VOZIDLO':'ZÁKAZNÍK';
-  var el=document.getElementById(cid),cv=el.querySelector('canvas'),im=el.querySelector('img');
-  var src=cv?cv.toDataURL():im?im.src:null;if(!src)return;
+  var el=document.getElementById(cid),im=el.querySelector('img');
+  var pc=qrPadCanvas(el);var src=pc?pc.toDataURL():im?im.src:null;if(!src)return;
   var name=document.getElementById(nid).textContent;
   document.getElementById('printArea').innerHTML='<div style="text-align:center;padding:40px;font-family:-apple-system,sans-serif"><div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">'+lbl+'</div><img src="'+src+'" style="width:300px;height:300px"><div style="font-size:22px;font-weight:700;margin-top:12px">'+esc(name)+'</div><div style="font-size:11px;color:#999;margin-top:8px">S. &amp; W. Automobily s.r.o.</div></div>';
   window.print();
@@ -687,7 +689,8 @@ async function shareQR(type){
   if(!navigator.canShare){flash('Sdílení není podporováno v tomto prohlížeči',true);return}
   try{
     var blob;
-    if(cv){blob=await new Promise(function(r){cv.toBlob(r,'image/png')})}
+    var pc=qrPadCanvas(el);
+    if(pc){blob=await new Promise(function(r){pc.toBlob(r,'image/png')})}
     else if(im){var resp=await fetch(im.src);blob=await resp.blob()}
     else{return}
     var file=new File([blob],'QR-'+name.replace(/[^a-zA-Z0-9]/g,'_')+'.png',{type:'image/png'});
