@@ -1,7 +1,7 @@
 /* ── V44 responsive UI state ── */
 (function(){
   function addCss(href){if(document.querySelector('link[href="'+href+'"]'))return;var l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l)}
-  function loadCss(){addCss('css/v44-responsive.css');addCss('css/v44-aux.css')}
+  function loadCss(){addCss('css/v44-responsive.css');addCss('css/v44-aux.css');addCss('css/v44-typography.css')}
   function setNavA11y(){var tabs=['tabScan','tabGen','tabLog'];for(var i=0;i<tabs.length;i++){var t=document.getElementById(tabs[i]);if(!t)continue;t.setAttribute('role','button');t.setAttribute('tabindex','0');t.setAttribute('aria-label',t.textContent);t.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();this.click()}}}}
   function updatePageTitle(){var active=document.querySelector('.tab.active');var name=active?active.textContent.trim():'Domů';document.title='Zkušební jízdy · '+name+' · v44'}
   function enhanceEmptyActive(){var el=document.getElementById('activeSection');if(!el||el.innerHTML.trim())return;el.innerHTML='<div class="v44-empty-active"><div class="icon">◇</div><strong>Žádná aktivní jízda</strong><small>Vyberte zákazníka a naskenujte vozidlo.</small></div>'}
