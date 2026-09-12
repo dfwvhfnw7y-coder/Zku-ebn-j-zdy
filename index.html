@@ -9,6 +9,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Zkušební jízdy — S. & W. Automobily</title>
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/import.css">
 </head>
 <body>
 
@@ -30,7 +31,8 @@
 <div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px" id="verBadge"></span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
 <div class="event-bar">
   <span>Akce:</span>
-  <input class="inp" id="eventName" placeholder="Název akce (povinné)" style="padding:8px 12px;font-size:13px" onchange="saveEventName()">
+  <input class="inp" id="eventName" placeholder="Název akce (povinné)" style="padding:8px 12px;font-size:13px;flex:1" onchange="saveEventName()">
+  <button class="btn btn-outline btn-sm" onclick="openCustomerImport()" style="padding:8px 10px;width:auto" title="Import zákazníků">📥</button>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('scan')" id="tabScan">Jízdy</div>
@@ -71,6 +73,19 @@
     <input id="cpickSearch" placeholder="Hledat zákazníka…" oninput="renderCustomerPicker()">
   </div>
   <div class="cpick-list" id="cpickList"></div>
+</div>
+
+<div id="importOverlay" class="import-overlay">
+  <div class="import-sheet">
+    <div class="import-head"><strong>📥 Import zákazníků</strong><button class="cpick-close" onclick="closeCustomerImport()">✕</button></div>
+    <div class="import-help">Import do aktuální akce. Podporuje CSV i vložení z Excelu. Sloupce: Jméno, E-mail, Telefon, Adresa, Firma. Číslo OP/ŘP se neimportuje.</div>
+    <input id="importFile" class="inp" type="file" accept=".csv,text/csv,text/plain" onchange="readImportFile(this)" style="margin-bottom:8px;font-size:13px">
+    <textarea id="importText" class="inp import-text" placeholder="Jméno;Email;Telefon;Adresa;Firma
+Jan Novák;jan@firma.cz;+420...;Praha;Firma s.r.o."></textarea>
+    <button class="btn btn-outline" onclick="buildImportPreview()" style="margin-top:8px">Zkontrolovat náhled</button>
+    <div id="importPreview" class="import-preview"><div class="cpick-empty">Vlož CSV data nebo vyber soubor.</div></div>
+    <button id="importRunBtn" class="btn btn-accent" onclick="runCustomerImport()" style="display:none">Importovat nové zákazníky</button>
+  </div>
 </div>
 
 <div id="panelScan" class="panel active">
@@ -152,5 +167,6 @@
 <script src="js/app-05-render.js"></script>
 <script src="js/app-06-qr-export.js"></script>
 <script src="js/app-07-customers-survey.js"></script>
+<script src="js/app-08-import.js"></script>
 </body>
 </html>
