@@ -2,8 +2,8 @@
 function switchTab(id){var p=['Scan','Gen','Log'],t=['tabScan','tabGen','tabLog'],d=['scan','gen','log'];for(var i=0;i<3;i++){document.getElementById('panel'+p[i]).classList.remove('active');document.getElementById(t[i]).classList.remove('active')}var x=d.indexOf(id);document.getElementById('panel'+p[x]).classList.add('active');document.getElementById(t[x]).classList.add('active');if(id==='log')renderLog()}
 var _tt=null;function flash(m,w){var t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(w?' warn':'');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show')},3000)}
 function showConfirm(type,value,info,btn,email,phone,addr,op){document.getElementById('cfIcon').textContent=type==='car'?'🚗':'👤';document.getElementById('cfLabel').textContent=type==='car'?'VOZIDLO':'ZÁKAZNÍK';document.getElementById('cfValue').textContent=value;document.getElementById('cfInfo').textContent=info||'';document.getElementById('cfOkBtn').textContent=btn||'Zapsat';pendingConfirm={type:type,value:value,email:email||'',phone:phone||'',addr:addr||'',op:op||''};document.getElementById('confirmOverlay').classList.add('show')}
-function hideConfirm(){document.getElementById('confirmOverlay').classList.remove('show');pendingConfirm=null}
-function confirmAction(){if(!pendingConfirm)return;var t=pendingConfirm.type,v=pendingConfirm.value,em=pendingConfirm.email,ph=pendingConfirm.phone,ad=pendingConfirm.addr,op=pendingConfirm.op;hideConfirm();if(t==='car')handleCar(v);else selectCustomerForRide(v,em,ph,ad,op,true)}
+function hideConfirm(keepPending){var cancelStaged=!keepPending&&pendingConfirm&&pendingConfirm.type==='car'&&pendingCustomer;document.getElementById('confirmOverlay').classList.remove('show');pendingConfirm=null;if(cancelStaged){pendingCustomer=null;flash('Výběr zákazníka zrušen')}}
+function confirmAction(){if(!pendingConfirm)return;var t=pendingConfirm.type,v=pendingConfirm.value,em=pendingConfirm.email,ph=pendingConfirm.phone,ad=pendingConfirm.addr,op=pendingConfirm.op;hideConfirm(true);if(t==='car')handleCar(v);else selectCustomerForRide(v,em,ph,ad,op,true)}
 function showCustConfirm(name,em,ph,ad,op){showConfirm('customer',name,'Vybrat zákazníka → potom naskenovat vozidlo','Vybrat',em,ph,ad,op)}
 
 /* ── Core ride rules ── */
@@ -14,37 +14,14 @@ function findRideByKeyInArray(arr,k){for(var i=0;i<arr.length;i++)if(arr[i]._key
 function findActiveByCarName(n){if(!n)return null;var l=n.toLowerCase();for(var i=0;i<rides.length;i++)if(!rides[i].end&&rideInCurrentEvent(rides[i])&&rides[i].car&&rides[i].car.toLowerCase()===l)return rides[i];return null}
 function custName(c){return typeof c==='string'?c:c.name}
 function normPhone(v){return String(v||'').replace(/[^0-9+]/g,'')}
-function customerMatches(c,name,email,phone){
-  var obj=typeof c==='object'?c:null,em=String(email||'').trim().toLowerCase(),ph=normPhone(phone),nm=String(name||'').trim().toLowerCase();
-  if(em)return!!obj&&String(obj.email||'').trim().toLowerCase()===em;
-  if(ph)return!!obj&&normPhone(obj.phone)===ph;
-  return String(custName(c)||'').trim().toLowerCase()===nm;
-}
+function customerMatches(c,name,email,phone){var obj=typeof c==='object'?c:null,em=String(email||'').trim().toLowerCase(),ph=normPhone(phone),nm=String(name||'').trim().toLowerCase();if(em)return!!obj&&String(obj.email||'').trim().toLowerCase()===em;if(ph)return!!obj&&normPhone(obj.phone)===ph;return String(custName(c)||'').trim().toLowerCase()===nm}
 function findActiveRidesWithCustomer(name,email,phone){var a=[];for(var i=0;i<rides.length;i++){if(rides[i].end||!rideInCurrentEvent(rides[i]))continue;var cs=rides[i].customers||[];for(var j=0;j<cs.length;j++)if(customerMatches(cs[j],name,email,phone)){a.push(rides[i]);break}}return a}
 function customerObj(name,email,phone,addr,op){return{name:name,email:email||'',phone:phone||'',addr:addr||'',op:op||''}}
-function selectCustomerForRide(name,email,phone,addr,op,startScanner){
-  if(!getEventName()){warnEvent();return}
-  pendingCustomer=customerObj(name,email,phone,addr,op);saveCustomer(name,email,phone,addr,op);
-  var old=findActiveRidesWithCustomer(name,email,phone);
-  flash('👤 '+name+(old.length?' · předchozí jízda se při novém autě ukončí':' · vybrán'));
-  if(startScanner!==false)setTimeout(function(){startScan('car')},120);
-}
-function assignPendingCustomerToCar(name){
-  if(!pendingCustomer)return false;
-  var c=pendingCustomer,now=new Date().toISOString(),oldCustomerRides=findActiveRidesWithCustomer(c.name,c.email,c.phone);
-  for(var i=0;i<oldCustomerRides.length;i++){oldCustomerRides[i].end=now;endRideTx(oldCustomerRides[i]._key)}
-  var oldCar=findActiveByCarName(name);if(oldCar&&oldCustomerRides.indexOf(oldCar)===-1){oldCar.end=now;endRideTx(oldCar._key)}
-  var ev=getEventName(),nr={car:name,start:now,end:null,customers:[c],event:ev,eventId:getCurrentEventId()};
-  var added=fbAdd(nr);lastActiveCarId=added._key;_pendingRide=added;pendingCustomer=null;flash('🚗 '+c.name+' → '+name);renderAll();if(!fbReady)loadRidesREST();return true;
-}
+function selectCustomerForRide(name,email,phone,addr,op,startScanner){if(!getEventName()){warnEvent();return}pendingCustomer=customerObj(name,email,phone,addr,op);saveCustomer(name,email,phone,addr,op);var old=findActiveRidesWithCustomer(name,email,phone);flash('👤 '+name+(old.length?' · předchozí jízda se při novém autě ukončí':' · vybrán'));if(startScanner!==false)setTimeout(function(){startScan('car')},120)}
+function assignPendingCustomerToCar(name){if(!pendingCustomer)return false;var c=pendingCustomer,now=new Date().toISOString(),oldCustomerRides=findActiveRidesWithCustomer(c.name,c.email,c.phone);for(var i=0;i<oldCustomerRides.length;i++){oldCustomerRides[i].end=now;endRideTx(oldCustomerRides[i]._key)}var oldCar=findActiveByCarName(name);if(oldCar&&oldCustomerRides.indexOf(oldCar)===-1){oldCar.end=now;endRideTx(oldCar._key)}var ev=getEventName(),nr={car:name,start:now,end:null,customers:[c],event:ev,eventId:getCurrentEventId()};var added=fbAdd(nr);lastActiveCarId=added._key;_pendingRide=added;pendingCustomer=null;flash('🚗 '+c.name+' → '+name);renderAll();if(!fbReady)loadRidesREST();return true}
 function handleCar(name){if(!getEventName()){warnEvent();return}if(assignPendingCustomerToCar(name))return;var ex=findActiveByCarName(name);if(ex)endRideTx(ex._key);var ev=getEventName(),nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev,eventId:getCurrentEventId()};var added=fbAdd(nr);lastActiveCarId=added._key;_pendingRide=added;flash('🚗 '+(ex?'Nové kolo: ':'Nová jízda: ')+name);renderAll();if(!fbReady)loadRidesREST()}
 /* Legacy/manual compatibility: if an active car exists, assign immediately; otherwise stage customer for car scan. */
-function handleCustomer(name,email,phone,addr,op){
-  var act=getActiveRides();if(!act.length){selectCustomerForRide(name,email,phone,addr,op,true);return}
-  var cr=findActiveRidesWithCustomer(name,email,phone),obj=customerObj(name,email,phone,addr,op);
-  if(cr.length){var now=new Date().toISOString();for(var i=0;i<cr.length;i++){cr[i].end=now;endRideTx(cr[i]._key)}var rem=getActiveRides();if(rem.length){var tgt=lastActiveCarId?findRideByKey(lastActiveCarId):null;if(!tgt||tgt.end||!rideInCurrentEvent(tgt))tgt=rem[0];lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);flash('🔄 '+name+' → '+tgt.car)}else flash('🏁 Ukončeno: '+name);if(!fbReady)loadRidesREST();return}
-  var tgt=lastActiveCarId?findRideByKey(lastActiveCarId):null;if(!tgt||tgt.end||!rideInCurrentEvent(tgt))tgt=act[0];lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);renderAll();flash('👤 '+name+' → '+tgt.car);if(!fbReady)loadRidesREST();
-}
+function handleCustomer(name,email,phone,addr,op){var act=getActiveRides();if(!act.length){selectCustomerForRide(name,email,phone,addr,op,true);return}var cr=findActiveRidesWithCustomer(name,email,phone),obj=customerObj(name,email,phone,addr,op);if(cr.length){var now=new Date().toISOString();for(var i=0;i<cr.length;i++){cr[i].end=now;endRideTx(cr[i]._key)}var rem=getActiveRides();if(rem.length){var tgt=lastActiveCarId?findRideByKey(lastActiveCarId):null;if(!tgt||tgt.end||!rideInCurrentEvent(tgt))tgt=rem[0];lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);flash('🔄 '+name+' → '+tgt.car)}else flash('🏁 Ukončeno: '+name);if(!fbReady)loadRidesREST();return}var tgt=lastActiveCarId?findRideByKey(lastActiveCarId):null;if(!tgt||tgt.end||!rideInCurrentEvent(tgt))tgt=act[0];lastActiveCarId=tgt._key;addCustomerTx(tgt,obj);renderAll();flash('👤 '+name+' → '+tgt.car);if(!fbReady)loadRidesREST()}
 function endRide(key){var r=findRideByKey(key);if(r&&!r.end){endRideTx(key);flash('🏁 '+r.car);if(!fbReady)loadRidesREST()}}
 function endAllRides(){var a=getActiveRides();if(!a.length)return;if(!confirm('Ukončit '+a.length+' jízd?'))return;for(var i=0;i<a.length;i++)endRideTx(a[i]._key);pendingCustomer=null;flash('Vše ukončeno');if(!fbReady)loadRidesREST()}
 function clearAll(){if(!confirm('Smazat VŠECHNA data?'))return;if(!confirm('Opravdu?'))return;fbDeleteAll();pendingCustomer=null;flash('Smazáno');rides=[];renderAll()}
