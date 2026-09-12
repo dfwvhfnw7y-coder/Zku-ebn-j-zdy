@@ -1,8 +1,8 @@
 /* ── V44 visual shell: no business logic lives here ── */
 (function(){
   function addStyle(){
-    if(!document.querySelector('link[href="css/v44.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44.css';document.head.appendChild(l)}
-    if(!document.querySelector('link[href="css/v44-toast-fix.css"]')){var f=document.createElement('link');f.rel='stylesheet';f.href='css/v44-toast-fix.css';document.head.appendChild(f)}
+    if(!document.querySelector('link[href="css/v44.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44.css?v=44';document.head.appendChild(l)}
+    if(!document.querySelector('link[href="css/v44-toast-fix.css"]')){var f=document.createElement('link');f.rel='stylesheet';f.href='css/v44-toast-fix.css?v=44';document.head.appendChild(f)}
   }
   function scanCarFromDashboard(){if(!pendingCustomer){flash('Nejdřív naskenujte nebo vyberte zákazníka.',true);var a=document.getElementById('v44Actions');if(a){a.classList.remove('v44-needs-customer');void a.offsetWidth;a.classList.add('v44-needs-customer')}return}startScan('car')}
   var originalManualAdd=window.manualAdd;
@@ -40,6 +40,7 @@
       manual.parentNode.insertBefore(toggle,manual);
     }
   }
+  function installOverlayBackLabels(){var cp=document.querySelector('#cpickOverlay .cpick-close');if(cp){cp.textContent='← Domů';cp.style.fontSize='14px';cp.style.fontWeight='700';cp.style.width='auto'}var im=document.querySelector('#importOverlay .cpick-close');if(im){im.textContent='← Domů';im.style.fontSize='14px';im.style.fontWeight='700';im.style.width='auto'}}
   function syncLabel(){
     var s=document.getElementById('syncStatus');if(!s)return;
     var raw=s.getAttribute('data-raw-sync')||s.textContent||'';
@@ -70,7 +71,7 @@
       if(car){car.classList.remove('ready');car.querySelector('strong').textContent='Naskenovat vozidlo';car.querySelector('small').textContent='Nejdřív vyberte zákazníka'}
     }
   };
-  function install(){addStyle();installHeader();installHero();document.body.classList.add('v44-ready');renderV44State()}
+  function install(){addStyle();installHeader();installHero();installOverlayBackLabels();document.body.classList.add('v44-ready');renderV44State()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   setInterval(function(){if(document.body.classList.contains('v44-ready'))renderV44State()},300);
 })();
