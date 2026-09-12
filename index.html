@@ -10,8 +10,22 @@
 <title>Zkušební jízdy — S. & W. Automobily</title>
 <link rel="stylesheet" href="css/app.css?v=44">
 <link rel="stylesheet" href="css/import.css?v=44">
+<link rel="stylesheet" href="css/v44.css?v=44">
+<style>
+/* V44 boot guard: never expose the legacy shell while V44 modules are loading. */
+body.v44-booting:not(.v44-ready)>:not(#pinOverlay):not(script){visibility:hidden!important}
+body.v44-booting:not(.v44-ready) #pinOverlay.hidden{display:flex!important}
+body.v44-booting .pin-overlay{background:radial-gradient(circle at 50% 0,#17313e 0,#081116 36%,#050b0f 100%);color:#f4f7f8}
+body.v44-booting .pin-box{max-width:340px;padding:24px 18px}
+body.v44-booting .pin-box h2{font-family:Georgia,'Times New Roman',serif;font-size:25px;font-weight:400;margin-bottom:8px}
+body.v44-booting .pin-box .pin-sub{color:#9aabb4;margin-bottom:30px}
+body.v44-booting .pin-dots .dot{border-color:#36505c}
+body.v44-booting .pin-dots .dot.filled{background:#12dff1;border-color:#12dff1}
+body.v44-booting .pin-key{background:linear-gradient(180deg,#142630,#0f1d25);border-color:#304752;border-radius:14px;color:#f4f7f8}
+body.v44-booting .pin-key:active{background:#12dff1;color:#031014;border-color:#12dff1}
+</style>
 </head>
-<body>
+<body class="v44-booting">
 
 <div id="pinOverlay" class="pin-overlay">
   <div class="pin-box">
@@ -29,143 +43,24 @@
   </div>
 </div>
 <div class="hdr"><h1>🚗 Zkušební jízdy</h1><span style="font-size:10px;color:var(--text2);margin-left:4px" id="verBadge"></span><span class="badge" id="countBadge">0</span><span class="sync" id="syncStatus">⏳</span></div>
-<div class="event-bar">
-  <span>Akce:</span>
-  <input class="inp" id="eventName" placeholder="Název akce (povinné)" style="padding:8px 12px;font-size:13px;flex:1" onchange="saveEventName()">
-  <button class="btn btn-outline btn-sm" onclick="openCustomerImport()" style="padding:8px 10px;width:auto" title="Import zákazníků">📥</button>
-</div>
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('scan')" id="tabScan">Jízdy</div>
-  <div class="tab" onclick="switchTab('gen')" id="tabGen">QR kódy</div>
-  <div class="tab" onclick="switchTab('log')" id="tabLog">Historie</div>
-</div>
+<div class="event-bar"><span>Akce:</span><input class="inp" id="eventName" placeholder="Název akce (povinné)" style="padding:8px 12px;font-size:13px;flex:1" onchange="saveEventName()"><button class="btn btn-outline btn-sm" onclick="openCustomerImport()" style="padding:8px 10px;width:auto" title="Import zákazníků">📥</button></div>
+<div class="tabs"><div class="tab active" onclick="switchTab('scan')" id="tabScan">Jízdy</div><div class="tab" onclick="switchTab('gen')" id="tabGen">QR kódy</div><div class="tab" onclick="switchTab('log')" id="tabLog">Historie</div></div>
 <div id="toast" class="toast"></div>
-
-<div id="scanOverlay" class="scan-overlay">
-  <div class="scan-top">
-    <button class="scan-cancel" onclick="closeScan()">✕ Zavřít</button>
-    <div class="label" id="scanLabel">Skenuj QR</div>
-    <button class="scan-cancel" onclick="toggleTorch()" id="torchBtn" style="font-size:20px;opacity:0.5">🔦</button>
-  </div>
-  <div class="scan-body">
-    <video id="scanVideo" playsinline autoplay muted></video>
-    <div class="scan-guide"></div>
-  </div>
-  <div class="scan-foot" id="scanFoot">Namiřte QR kód do rámečku</div>
-</div>
-
-<div id="confirmOverlay" class="confirm-overlay">
-  <div class="confirm-box">
-    <div class="icon" id="cfIcon"></div>
-    <div class="label" id="cfLabel"></div>
-    <div class="value" id="cfValue"></div>
-    <div class="info" id="cfInfo"></div>
-    <div class="btns">
-      <button class="btn btn-outline" onclick="hideConfirm()">Zrušit</button>
-      <button class="btn btn-accent" id="cfOkBtn" onclick="confirmAction()">Zapsat</button>
-    </div>
-  </div>
-</div>
-
-<div id="cpickOverlay" class="cpick-overlay">
-  <div class="cpick-top">
-    <button class="cpick-close" onclick="closeCustomerPicker()">✕</button>
-    <input id="cpickSearch" placeholder="Hledat zákazníka…" oninput="renderCustomerPicker()">
-  </div>
-  <div class="cpick-list" id="cpickList"></div>
-</div>
-
-<div id="importOverlay" class="import-overlay">
-  <div class="import-sheet">
-    <div class="import-head"><strong>📥 Import zákazníků</strong><button class="cpick-close" onclick="closeCustomerImport()">✕</button></div>
-    <div class="import-help">Import do aktuální akce. Podporuje CSV i vložení z Excelu. Sloupce: Jméno, E-mail, Telefon, Adresa, Firma. Číslo OP/ŘP se neimportuje.</div>
-    <input id="importFile" class="inp" type="file" accept=".csv,text/csv,text/plain" onchange="readImportFile(this)" style="margin-bottom:8px;font-size:13px">
-    <textarea id="importText" class="inp import-text" placeholder="Jméno;Email;Telefon;Adresa;Firma
-Jan Novák;jan@firma.cz;+420...;Praha;Firma s.r.o."></textarea>
-    <button class="btn btn-outline" onclick="buildImportPreview()" style="margin-top:8px">Zkontrolovat náhled</button>
-    <div id="importPreview" class="import-preview"><div class="cpick-empty">Vlož CSV data nebo vyber soubor.</div></div>
-    <button id="importRunBtn" class="btn btn-accent" onclick="runCustomerImport()" style="display:none">Importovat nové zákazníky</button>
-  </div>
-</div>
-
-<div id="panelScan" class="panel active">
-  <div style="display:flex;gap:8px;margin-bottom:8px">
-    <button class="btn btn-accent" onclick="startScan('car')" style="flex:1">🚗 Skenovat auto</button>
-    <button class="btn btn-blue" onclick="startScan('customer')" style="flex:1">👤 Skenovat zákazníka</button>
-  </div>
-  <div style="margin-bottom:12px">
-    <button class="btn btn-outline" onclick="openCustomerPicker()" style="width:100%">📋 Vybrat zákazníka ze seznamu</button>
-  </div>
-  <div id="activeSection"></div>
-  <div class="card"><h3>Ruční zadání</h3>
-    <div style="margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div>
-    <div style="margin-bottom:8px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div>
-    <div style="margin-bottom:8px"><input class="inp" id="manualOP" placeholder="⚠️ Číslo OP / ŘP — ověřit totožnost!" style="font-size:13px;border:1.5px solid var(--accent);background:rgba(0,201,167,.08)"></div>
-    <div style="margin-bottom:8px"><input class="inp" id="manualEmail" placeholder="E-mail (nepovinné)" type="email" style="font-size:13px"></div>
-    <div style="margin-bottom:8px"><input class="inp" id="manualPhone" placeholder="Telefon (nepovinné)" type="tel" style="font-size:13px"></div>
-    <div style="margin-bottom:12px"><input class="inp" id="manualAddr" placeholder="Adresa (nepovinné)" style="font-size:13px"></div>
-    <button class="btn btn-outline" onclick="manualAdd()">Zapsat ručně</button>
-  </div>
-</div>
-
-<div id="panelGen" class="panel">
-  <div class="card"><h3>🚗 QR — vozidlo</h3>
-    <input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC" style="margin-bottom:12px">
-    <button class="btn btn-accent" onclick="generateQR('car')">Vytvořit QR</button>
-    <div id="qrCarOutput" style="display:none"><div class="qr-block"><div id="qrCarContainer"></div><div class="qr-label" id="qrCarName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button>
-    <button class="btn btn-outline btn-sm" onclick="shareQR('car')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div>
-  </div>
-  <div class="card"><h3>👤 QR — zákazník</h3>
-    <input class="inp" id="genCustInput" placeholder="Jméno zákazníka" style="margin-bottom:8px">
-    <input class="inp" id="genCustOP" placeholder="⚠️ Číslo OP / ŘP — ověřit totožnost!" style="margin-bottom:8px;font-size:13px;border:1.5px solid var(--accent);background:rgba(0,201,167,.08)">
-    <input class="inp" id="genCustEmail" placeholder="E-mail (nepovinné)" type="email" style="margin-bottom:8px;font-size:13px">
-    <input class="inp" id="genCustPhone" placeholder="Telefon (nepovinné)" type="tel" style="margin-bottom:8px;font-size:13px">
-    <input class="inp" id="genCustAddr" placeholder="Adresa (nepovinné)" style="margin-bottom:12px;font-size:13px">
-    <button class="btn btn-accent" onclick="generateQR('customer')">Vytvořit QR</button>
-    <div id="qrCustOutput" style="display:none"><div class="qr-block"><div id="qrCustContainer"></div><div class="qr-label" id="qrCustName"></div></div>
-    <button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button>
-    <button class="btn btn-outline btn-sm" onclick="shareQR('customer')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div>
-  </div>
-  <div class="card"><h3>ℹ️ Návod</h3>
-    <div style="font-size:13px;color:var(--text2);line-height:1.7">
-      Skenovat auto/zákazníka → namiř QR do rámečku<br>
-      Fotoaparátem → namiř na QR → klepni na odkaz<br><br>
-      Zákazník → vozidlo → jízda · Více aut současně<br>
-      🔄 Data sdílená v reálném čase mezi zařízeními
-    </div>
-  </div>
-</div>
-
-<div id="panelLog" class="panel">
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <input class="inp" id="logSearch" placeholder="Hledat…" oninput="renderLog()">
-    <button class="btn btn-outline btn-sm" onclick="sendSurveys()" title="Odeslat dotazníky">✉️</button>
-    <button class="btn btn-outline btn-sm" onclick="exportLog()">📥</button>
-    <button class="btn btn-outline btn-sm" onclick="clearAll()">🗑</button>
-  </div>
-  <div id="logList"></div>
-</div>
+<div id="scanOverlay" class="scan-overlay"><div class="scan-top"><button class="scan-cancel" onclick="closeScan()">✕ Zavřít</button><div class="label" id="scanLabel">Skenuj QR</div><button class="scan-cancel" onclick="toggleTorch()" id="torchBtn" style="font-size:20px;opacity:0.5">🔦</button></div><div class="scan-body"><video id="scanVideo" playsinline autoplay muted></video><div class="scan-guide"></div></div><div class="scan-foot" id="scanFoot">Namiřte QR kód do rámečku</div></div>
+<div id="confirmOverlay" class="confirm-overlay"><div class="confirm-box"><div class="icon" id="cfIcon"></div><div class="label" id="cfLabel"></div><div class="value" id="cfValue"></div><div class="info" id="cfInfo"></div><div class="btns"><button class="btn btn-outline" onclick="hideConfirm()">Zrušit</button><button class="btn btn-accent" id="cfOkBtn" onclick="confirmAction()">Zapsat</button></div></div></div>
+<div id="cpickOverlay" class="cpick-overlay"><div class="cpick-top"><button class="cpick-close" onclick="closeCustomerPicker()">✕</button><input id="cpickSearch" placeholder="Hledat zákazníka…" oninput="renderCustomerPicker()"></div><div class="cpick-list" id="cpickList"></div></div>
+<div id="importOverlay" class="import-overlay"><div class="import-sheet"><div class="import-head"><strong>📥 Import zákazníků</strong><button class="cpick-close" onclick="closeCustomerImport()">✕</button></div><div class="import-help">Import do aktuální akce. Podporuje CSV i vložení z Excelu. Sloupce: Jméno, E-mail, Telefon, Adresa, Firma. Číslo OP/ŘP se neimportuje.</div><input id="importFile" class="inp" type="file" accept=".csv,text/csv,text/plain" onchange="readImportFile(this)" style="margin-bottom:8px;font-size:13px"><textarea id="importText" class="inp import-text" placeholder="Jméno;Email;Telefon;Adresa;Firma
+Jan Novák;jan@firma.cz;+420...;Praha;Firma s.r.o."></textarea><button class="btn btn-outline" onclick="buildImportPreview()" style="margin-top:8px">Zkontrolovat náhled</button><div id="importPreview" class="import-preview"><div class="cpick-empty">Vlož CSV data nebo vyber soubor.</div></div><button id="importRunBtn" class="btn btn-accent" onclick="runCustomerImport()" style="display:none">Importovat nové zákazníky</button></div></div>
+<div id="panelScan" class="panel active"><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn btn-accent" onclick="startScan('car')" style="flex:1">🚗 Skenovat auto</button><button class="btn btn-blue" onclick="startScan('customer')" style="flex:1">👤 Skenovat zákazníka</button></div><div style="margin-bottom:12px"><button class="btn btn-outline" onclick="openCustomerPicker()" style="width:100%">📋 Vybrat zákazníka ze seznamu</button></div><div id="activeSection"></div><div class="card"><h3>Ruční zadání</h3><div style="margin-bottom:8px"><input class="inp" id="manualCar" placeholder="Vůz (např. GLC 300d 4M)"></div><div style="margin-bottom:8px"><input class="inp" id="manualCust" placeholder="Zákazník (jméno)"></div><div style="margin-bottom:8px"><input class="inp" id="manualOP" placeholder="⚠️ Číslo OP / ŘP — ověřit totožnost!" style="font-size:13px;border:1.5px solid var(--accent);background:rgba(0,201,167,.08)"></div><div style="margin-bottom:8px"><input class="inp" id="manualEmail" placeholder="E-mail (nepovinné)" type="email" style="font-size:13px"></div><div style="margin-bottom:8px"><input class="inp" id="manualPhone" placeholder="Telefon (nepovinné)" type="tel" style="font-size:13px"></div><div style="margin-bottom:12px"><input class="inp" id="manualAddr" placeholder="Adresa (nepovinné)" style="font-size:13px"></div><button class="btn btn-outline" onclick="manualAdd()">Zapsat ručně</button></div></div>
+<div id="panelGen" class="panel"><div class="card"><h3>🚗 QR — vozidlo</h3><input class="inp" id="genCarInput" placeholder="Např. GLC 300d 4MATIC" style="margin-bottom:12px"><button class="btn btn-accent" onclick="generateQR('car')">Vytvořit QR</button><div id="qrCarOutput" style="display:none"><div class="qr-block"><div id="qrCarContainer"></div><div class="qr-label" id="qrCarName"></div></div><button class="btn btn-outline btn-sm" onclick="printQR('car')" style="margin:0 auto;display:flex;width:auto">🖨</button><button class="btn btn-outline btn-sm" onclick="shareQR('car')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div></div><div class="card"><h3>👤 QR — zákazník</h3><input class="inp" id="genCustInput" placeholder="Jméno zákazníka" style="margin-bottom:8px"><input class="inp" id="genCustOP" placeholder="⚠️ Číslo OP / ŘP — ověřit totožnost!" style="margin-bottom:8px;font-size:13px;border:1.5px solid var(--accent);background:rgba(0,201,167,.08)"><input class="inp" id="genCustEmail" placeholder="E-mail (nepovinné)" type="email" style="margin-bottom:8px;font-size:13px"><input class="inp" id="genCustPhone" placeholder="Telefon (nepovinné)" type="tel" style="margin-bottom:8px;font-size:13px"><input class="inp" id="genCustAddr" placeholder="Adresa (nepovinné)" style="margin-bottom:12px;font-size:13px"><button class="btn btn-accent" onclick="generateQR('customer')">Vytvořit QR</button><div id="qrCustOutput" style="display:none"><div class="qr-block"><div id="qrCustContainer"></div><div class="qr-label" id="qrCustName"></div></div><button class="btn btn-outline btn-sm" onclick="printQR('customer')" style="margin:0 auto;display:flex;width:auto">🖨</button><button class="btn btn-outline btn-sm" onclick="shareQR('customer')" style="margin:4px auto 0;display:flex;width:auto">📤 Sdílet</button></div></div><div class="card"><h3>ℹ️ Návod</h3><div style="font-size:13px;color:var(--text2);line-height:1.7">Skenovat auto/zákazníka → namiř QR do rámečku<br>Fotoaparátem → namiř na QR → klepni na odkaz<br><br>Zákazník → vozidlo → jízda · Více aut současně<br>🔄 Data sdílená v reálném čase mezi zařízeními</div></div></div>
+<div id="panelLog" class="panel"><div style="display:flex;gap:8px;margin-bottom:12px"><input class="inp" id="logSearch" placeholder="Hledat…" oninput="renderLog()"><button class="btn btn-outline btn-sm" onclick="sendSurveys()" title="Odeslat dotazníky">✉️</button><button class="btn btn-outline btn-sm" onclick="exportLog()">📥</button><button class="btn btn-outline btn-sm" onclick="clearAll()">🗑</button></div><div id="logList"></div></div>
 <div id="printArea"></div>
-
-<!-- EmailJS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<!-- Firebase SDK -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.js"></script>
-<!-- ZXing QR scanner: pinned for release stability -->
 <script type="text/javascript" src="https://unpkg.com/@zxing/browser@0.2.1"></script>
-<!-- QR generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<script src="js/app-01-core.js?v=44"></script>
-<script src="js/app-02-firebase.js?v=44"></script>
-<script src="js/app-03-rides.js?v=44"></script>
-<script src="js/app-04-scanner.js?v=44"></script>
-<script src="js/app-05-render.js?v=44"></script>
-<script src="js/app-06-qr-export.js?v=44"></script>
-<script src="js/app-07-customers-survey.js?v=44"></script>
-<script src="js/app-08-import.js?v=44"></script>
+<script src="js/app-01-core.js?v=44"></script><script src="js/app-02-firebase.js?v=44"></script><script src="js/app-03-rides.js?v=44"></script><script src="js/app-04-scanner.js?v=44"></script><script src="js/app-05-render.js?v=44"></script><script src="js/app-06-qr-export.js?v=44"></script><script src="js/app-07-customers-survey.js?v=44"></script><script src="js/app-08-import.js?v=44"></script>
 </body>
 </html>
