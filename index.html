@@ -8,8 +8,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Zkušební jízdy — S. & W. Automobily</title>
-<link rel="stylesheet" href="css/app.css">
-<link rel="stylesheet" href="css/import.css">
+<link rel="stylesheet" href="css/app.css?v=44">
+<link rel="stylesheet" href="css/import.css?v=44">
 </head>
 <body>
 
@@ -131,7 +131,7 @@ Jan Novák;jan@firma.cz;+420...;Praha;Firma s.r.o."></textarea>
     <div style="font-size:13px;color:var(--text2);line-height:1.7">
       Skenovat auto/zákazníka → namiř QR do rámečku<br>
       Fotoaparátem → namiř na QR → klepni na odkaz<br><br>
-      Opakovaný sken = ukončí jízdu · Více aut současně<br>
+      Zákazník → vozidlo → jízda · Více aut současně<br>
       🔄 Data sdílená v reálném čase mezi zařízeními
     </div>
   </div>
@@ -150,23 +150,22 @@ Jan Novák;jan@firma.cz;+420...;Praha;Firma s.r.o."></textarea>
 
 <!-- EmailJS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<!-- Firebase SDK via cdnjs (same CDN as other libs) -->
 <!-- Firebase SDK -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-auth-compat.js"></script>
-<!-- ZXing QR scanner -->
-<script type="text/javascript" src="https://unpkg.com/@zxing/browser@latest"></script>
+<!-- ZXing QR scanner: pinned for release stability -->
+<script type="text/javascript" src="https://unpkg.com/@zxing/browser@0.2.1"></script>
 <!-- QR generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<script src="js/app-01-core.js"></script>
-<script src="js/app-02-firebase.js"></script>
-<script src="js/app-03-rides.js"></script>
-<script src="js/app-04-scanner.js"></script>
-<script src="js/app-05-render.js"></script>
-<script src="js/app-06-qr-export.js"></script>
-<script src="js/app-07-customers-survey.js"></script>
-<script src="js/app-08-import.js"></script>
+<script src="js/app-01-core.js?v=44"></script>
+<script src="js/app-02-firebase.js?v=44"></script>
+<script src="js/app-03-rides.js?v=44"></script>
+<script src="js/app-04-scanner.js?v=44"></script>
+<script src="js/app-05-render.js?v=44"></script>
+<script src="js/app-06-qr-export.js?v=44"></script>
+<script src="js/app-07-customers-survey.js?v=44"></script>
+<script src="js/app-08-import.js?v=44"></script>
 </body>
 </html>
