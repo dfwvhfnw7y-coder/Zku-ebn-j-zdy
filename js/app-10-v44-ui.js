@@ -5,6 +5,8 @@
     var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44.css';document.head.appendChild(l);
   }
   function scanCarFromDashboard(){if(!pendingCustomer){flash('Nejdřív naskenujte nebo vyberte zákazníka.',true);var a=document.getElementById('v44Actions');if(a){a.classList.remove('v44-needs-customer');void a.offsetWidth;a.classList.add('v44-needs-customer')}return}startScan('car')}
+  var originalManualAdd=window.manualAdd;
+  if(originalManualAdd)window.manualAdd=function(){var car=document.getElementById('manualCar'),cust=document.getElementById('manualCust'),c=car?car.value.trim():'',u=cust?cust.value.trim():'';if(c&&!u&&!pendingCustomer){flash('Nejdřív zadejte nebo vyberte zákazníka.',true);if(cust)cust.focus();return}return originalManualAdd()};
   function installHero(){
     var panel=document.getElementById('panelScan');if(!panel||document.getElementById('v44Hero'))return;
     var hero=document.createElement('section');hero.id='v44Hero';hero.className='v44-hero';
