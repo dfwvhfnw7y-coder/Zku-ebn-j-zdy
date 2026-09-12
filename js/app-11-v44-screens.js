@@ -11,12 +11,12 @@
   var originalCloseScan=window.closeScan;window.closeScan=function(){originalCloseScan();renderScanCustomer();if(window.renderV44State)renderV44State()};
   var originalSelectCustomer=window.selectCustomerForRide;window.selectCustomerForRide=function(name,email,phone,addr,op,startScanner){originalSelectCustomer(name,email,phone,addr,op,startScanner);if(window.renderV44State)renderV44State();setTimeout(renderScanCustomer,150)};
   var originalAssign=window.assignPendingCustomerToCar;window.assignPendingCustomerToCar=function(name){var x=originalAssign(name);if(window.renderV44State)renderV44State();renderScanCustomer();return x};
-  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-screens.css';document.head.appendChild(l);installScanCustomerCard();if(window.renderActive)renderActive();setInterval(function(){if(document.body.classList.contains('v44-ready')&&document.getElementById('activeSection'))renderActive()},30000)}
+  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-screens.css?v=44';document.head.appendChild(l);installScanCustomerCard();if(window.renderActive)renderActive();setInterval(function(){if(document.body.classList.contains('v44-ready')&&document.getElementById('activeSection'))renderActive()},30000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 /* v44: deterministic module chain: polish -> responsive -> fleet -> event fleet */
 (function(){
-  var s=document.createElement('script');s.src='js/app-12-v44-polish.js';
-  s.onload=function(){var x=document.createElement('script');x.src='js/app-13-v44-responsive.js';document.body.appendChild(x)};
+  var s=document.createElement('script');s.src='js/app-12-v44-polish.js?v=44';
+  s.onload=function(){var x=document.createElement('script');x.src='js/app-13-v44-responsive.js?v=44';document.body.appendChild(x)};
   document.body.appendChild(s);
 })();
