@@ -65,5 +65,8 @@ setInterval(function(){
   if(sig!==_eventUiSig){_eventUiSig=sig;renderEventSelector()}
 },750);
 
-/* v44: visual layer loads after the functional v43 modules */
-(function(){var s=document.createElement('script');s.src='js/app-10-v44-ui.js';document.body.appendChild(s)})();
+/* v44: visual modules load after the functional v43 modules. */
+(function(){
+  function load(src,done){var s=document.createElement('script');s.src=src;s.onload=done||null;document.body.appendChild(s)}
+  load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')});
+})();
