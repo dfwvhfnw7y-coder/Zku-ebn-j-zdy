@@ -1,4 +1,4 @@
-var APP_VERSION=43;
+var APP_VERSION=44;
 document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
