@@ -3,13 +3,14 @@ var cpickAllEvents=false;
 function getEventName(){return(document.getElementById('eventName').value||'').trim()}
 function saveCustomer(name,email,phone,addr,op){
   if(!name)return;
-  var ev=getEventName();
+  var ev=getEventName(),eid=getCurrentEventId();
   var nl=name.toLowerCase(),el=(email||'').toLowerCase();
   for(var i=0;i<regCustomers.length;i++){
     var c=regCustomers[i];
-    if((c.name||'').toLowerCase()===nl&&(c.email||'').toLowerCase()===el&&(c.event||'')===(ev||''))return;
+    var sameEvent=(c.eventId&&eid)?c.eventId===eid:(c.event||'')===(ev||'');
+    if((c.name||'').toLowerCase()===nl&&(c.email||'').toLowerCase()===el&&sameEvent)return;
   }
-  var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',op:op||'',event:ev,created:new Date().toISOString()};
+  var obj={name:name,email:email||'',phone:phone||'',addr:addr||'',op:op||'',event:ev,eventId:eid,created:new Date().toISOString()};
   if(fbReady&&db){db.ref('customers').push(obj)}
   else{fbRest('POST','customers',obj)}
 }
@@ -38,16 +39,15 @@ function closeCustomerPicker(){document.getElementById('cpickOverlay').classList
 function toggleCpickEvents(){cpickAllEvents=!cpickAllEvents;renderCustomerPicker()}
 function renderCustomerPicker(){
   var q=(document.getElementById('cpickSearch').value||'').toLowerCase().trim();
-  var ev=getEventName();
+  var ev=getEventName(),eid=getCurrentEventId();
   var filtered=[];
   for(var i=0;i<regCustomers.length;i++){
     var c=regCustomers[i];
-    if(!cpickAllEvents&&ev&&(c.event||'')!==ev)continue;
+    if(!cpickAllEvents&&ev){var sameEvent=(c.eventId&&eid)?c.eventId===eid:(c.event||'')===ev;if(!sameEvent)continue;}
     var s=(c.name+' '+c.email+' '+c.phone+' '+c.addr).toLowerCase();
     if(!q||s.indexOf(q)!==-1)filtered.push(c);
   }
   var el=document.getElementById('cpickList');
-  // Header with toggle + count
   var evLabel=cpickAllEvents?'Všechny akce':(ev||'Bez názvu akce');
   var otherEvents=getCustomerEvents();
   var h='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">';
