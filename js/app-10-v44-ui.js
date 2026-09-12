@@ -1,8 +1,8 @@
 /* ── V44 visual shell: no business logic lives here ── */
 (function(){
   function addStyle(){
-    if(document.querySelector('link[href="css/v44.css"]'))return;
-    var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44.css';document.head.appendChild(l);
+    if(!document.querySelector('link[href="css/v44.css"]')){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44.css';document.head.appendChild(l)}
+    if(!document.querySelector('link[href="css/v44-toast-fix.css"]')){var f=document.createElement('link');f.rel='stylesheet';f.href='css/v44-toast-fix.css';document.head.appendChild(f)}
   }
   function scanCarFromDashboard(){if(!pendingCustomer){flash('Nejdřív naskenujte nebo vyberte zákazníka.',true);var a=document.getElementById('v44Actions');if(a){a.classList.remove('v44-needs-customer');void a.offsetWidth;a.classList.add('v44-needs-customer')}return}startScan('car')}
   var originalManualAdd=window.manualAdd;
