@@ -67,12 +67,9 @@ body.v44-ready .cpick-item .ci-name{font-size:15px;font-weight:700}.cpick-item .
 body.v44-ready .cpick-alpha{background:#071015!important;color:var(--v44-cyan)!important;padding-left:10px!important}
 body.v44-ready .confirm-box{background:#0e1b22;border-color:#334b57;border-radius:18px;box-shadow:0 22px 80px rgba(0,0,0,.55)}
 body.v44-ready .scan-top,body.v44-ready .scan-foot{background:#061015}.scan-guide{border-color:var(--v44-cyan);box-shadow:0 0 0 4000px rgba(0,0,0,.5)}.scan-guide::before{border-color:var(--v44-cyan)}
-/* Toast must fit narrow phones; selected-customer confirmation is a positive state. */
 body.v44-ready .toast{top:138px;left:14px;right:14px;width:auto;max-width:calc(100vw - 28px);box-sizing:border-box;background:#10242c;border-color:var(--v44-green);color:#dfffea;border-radius:12px;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.35;text-align:center;padding:10px 12px;font-size:13px}
 @media(max-width:380px){body.v44-ready .toast{left:10px;right:10px;max-width:calc(100vw - 20px);font-size:12px;padding:9px 10px}}
 @media(min-width:760px){html,body{max-width:100%}.tabs{width:520px!important}.panel{max-width:740px!important}.v44-hero{border-radius:0 0 18px 18px}.hdr,.event-bar{max-width:740px;margin-left:auto;margin-right:auto}.v44-actions{grid-template-columns:1fr 1fr}}
-
-/* Mobile confirm dialogs: keep all assignment/end-ride information centered and readable. */
 body.v44-ready .confirm-overlay{padding:18px;align-items:center;justify-content:center}
 body.v44-ready .confirm-box{width:min(100%,360px);max-width:360px;margin:0 auto;padding:24px 20px;text-align:center;overflow:hidden}
 body.v44-ready .confirm-box .icon,body.v44-ready .confirm-box .label,body.v44-ready .confirm-box .value,body.v44-ready .confirm-box .info{text-align:center;width:100%;max-width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}
@@ -81,3 +78,7 @@ body.v44-ready .confirm-box .value{font-size:20px;line-height:1.25}
 body.v44-ready .confirm-box .info{font-size:13px;line-height:1.45;padding:0 4px;margin-bottom:18px}
 body.v44-ready .confirm-box .btns{justify-content:center}
 @media(max-width:380px){body.v44-ready .confirm-overlay{padding:12px}body.v44-ready .confirm-box{padding:22px 16px}body.v44-ready .confirm-box .value{font-size:18px}body.v44-ready .confirm-box .info{font-size:12px}}
+
+/* Startup flash guard: the overlay may exist immediately, but its PIN contents are revealed only after the V44 shell finishes installing. */
+body.v44-booting #pinOverlay .pin-box{visibility:hidden;opacity:0}
+body.v44-booting #pinOverlay.v44-pin-ready .pin-box{visibility:visible;opacity:1;transition:opacity .12s ease}
