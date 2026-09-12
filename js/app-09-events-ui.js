@@ -20,16 +20,20 @@ function installEventSelector(){
 function renderEventSelector(){
   var sel=document.getElementById('eventSelect');
   if(!sel)return;
-  var list=sortEventsForPicker(events),h='<option value="">Vyber akci…</option>';
+  var list=sortEventsForPicker(events),name=getEventName(),hasCurrent=false;
+  for(var z=0;z<list.length;z++)if(list[z]._key===currentEventId){hasCurrent=true;break}
+  /* Po refreshi zobrazíme poslední vybranou akci hned, i než dorazí Firebase snapshot. */
+  if(currentEventId&&name&&!hasCurrent)list.unshift({_key:currentEventId,name:name,createdAt:'',status:'local'});
+  var h='<option value="">Vyber akci…</option>';
   for(var i=0;i<list.length;i++){
     var e=list[i],label=e.name||'Bez názvu';
     if(e.createdAt){var d=new Date(e.createdAt);if(!isNaN(d.getTime()))label+=' · '+d.toLocaleDateString('cs-CZ')}
     h+='<option value="'+esc(e._key)+'">'+esc(label)+'</option>';
   }
   sel.innerHTML=h;
-  if(currentEventId&&eventById(currentEventId))sel.value=currentEventId;
+  if(currentEventId){sel.value=currentEventId}
   else{
-    var name=getEventName(),legacy=eventByName(name);
+    var legacy=eventByName(name);
     if(legacy){selectEventById(legacy._key,false);sel.value=legacy._key}
   }
 }
@@ -41,19 +45,24 @@ function clearTransientEventUi(){
   var pickEl=document.getElementById('cpickOverlay');if(pickEl)pickEl.classList.remove('show');
   if(typeof window.v44CardPrintMode!=='undefined')window.v44CardPrintMode=false;
 }
+function goHome(){if(typeof switchTab==='function')switchTab('scan');try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}}
 function selectEventById(id,notify){
   var previousId=currentEventId||'';
   var e=eventById(id);
+  /* U právě obnovené stránky může být vybraná akce zatím jen v localStorage. */
+  if(!e&&id===currentEventId&&getEventName())e={_key:id,name:getEventName(),createdAt:'',status:'local'};
   if(!e){
     if(previousId)clearTransientEventUi();
     currentEventId='';document.getElementById('eventName').value='';persistEventSelection('','');
     if(window.renderV44State)renderV44State();
+    goHome();
     if(notify!==false)flash('Vyber akci',true);return;
   }
   if(previousId&&previousId!==e._key)clearTransientEventUi();
   currentEventId=e._key;document.getElementById('eventName').value=e.name||'';persistEventSelection(e.name||'',e._key);
   clearEventWarn();if(notify!==false)flash('📋 Akce: '+(e.name||''));renderAll();
   if(window.renderV44State)renderV44State();
+  goHome();
   var picker=document.getElementById('cpickOverlay');if(picker&&picker.classList.contains('show'))renderCustomerPicker();
 }
 function onEventSelect(){selectEventById(document.getElementById('eventSelect').value,true)}
@@ -62,10 +71,11 @@ function createNewEvent(){
   if(!name){flash('Název akce je povinný',true);return}
   clearTransientEventUi();
   var id=newEventId(),obj={name:name,createdAt:new Date().toISOString(),status:'active'};
-  events.push({_key:id,name:obj.name,createdAt:obj.createdAt,status:obj.status});currentEventId=id;
-  document.getElementById('eventName').value=name;persistEventSelection(name,id);
-  if(fbReady&&db)db.ref('events/'+id).set(obj);else fbRest('PUT','events/'+id,obj);
-  renderEventSelector();document.getElementById('eventSelect').value=id;clearEventWarn();if(window.renderV44State)renderV44State();flash('✅ Nová akce: '+name);
+  currentEventId=id;document.getElementById('eventName').value=name;persistEventSelection(name,id);
+  events.push({_key:id,name:obj.name,createdAt:obj.createdAt,status:obj.status});
+  renderEventSelector();document.getElementById('eventSelect').value=id;clearEventWarn();if(window.renderV44State)renderV44State();goHome();
+  var save=(fbReady&&db)?db.ref('events/'+id).set(obj):fbRest('PUT','events/'+id,obj);
+  Promise.resolve(save).then(function(){flash('✅ Nová akce uložena: '+name)}).catch(function(err){flash('Akci se nepodařilo uložit: '+(err&&err.message?err.message:err),true)});
 }
 function warnEvent(){
   var el=document.getElementById('eventSelect')||document.getElementById('eventName');
@@ -75,9 +85,9 @@ function warnEvent(){
 function clearEventWarn(){var el=document.getElementById('eventSelect')||document.getElementById('eventName');if(el)el.classList.remove('needEvent')}
 installEventSelector();
 setInterval(function(){
-  var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')}).join('|');
+  var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')}).join('|')+'|current:'+currentEventId+'|name:'+getEventName();
   if(sig!==_eventUiSig){_eventUiSig=sig;renderEventSelector()}
-},750);
+},500);
 
 /* v44: visual modules load after the functional v43 modules. */
 (function(){
