@@ -10,7 +10,7 @@
   var oldRenderActive=window.renderActive;if(oldRenderActive)window.renderActive=function(){oldRenderActive();enhanceEmptyActive();renderFlow()};
   var oldV44State=window.renderV44State;if(oldV44State)window.renderV44State=function(){oldV44State();renderFlow()};
   var oldSwitch=window.switchTab;if(oldSwitch)window.switchTab=function(id){oldSwitch(id);updatePageTitle();window.scrollTo({top:0,behavior:'smooth'})};
-  function install(){loadCss();setNavA11y();updatePageTitle();installFlow();enhanceEmptyActive();renderFlow();var s=document.createElement('script');s.src='js/app-14-v44-fleet.js';document.body.appendChild(s)}
+  function install(){loadCss();setNavA11y();updatePageTitle();installFlow();enhanceEmptyActive();renderFlow();var s=document.createElement('script');s.src='js/app-14-v44-fleet.js';s.onload=function(){var x=document.createElement('script');x.src='js/app-15-v44-event-fleet.js';document.body.appendChild(x)};document.body.appendChild(s)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   setInterval(renderFlow,1000);
 })();
