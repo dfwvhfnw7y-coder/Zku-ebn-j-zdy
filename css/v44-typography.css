@@ -12,7 +12,7 @@ body.v44-ready .event-bar .btn{height:50px;min-width:46px}
 .v44-hero::after{width:230px;height:82px;right:-22px;bottom:27px;opacity:.62}
 .v44-hero-title{font-family:var(--v44-display);font-size:38px;line-height:.98;font-weight:400;letter-spacing:-.035em;max-width:70%}
 .v44-hero-sub{font-size:15px;font-weight:400;letter-spacing:.015em;color:#cbd6da;margin-top:10px}
-.v44-flow{margin:0 0 16px;gap:7px}.v44-flow .step{min-height:58px;padding:9px 7px;border-radius:12px}.v44-flow .num{width:23px;height:23px;font-size:10px}.v44-flow strong{font-size:11px;font-weight:650;letter-spacing:.01em}.v44-flow small{font-size:9px;line-height:1.25}
+.v44-flow{margin:0 0 16px;gap:7px}.v44-flow-step{min-height:46px;padding:10px 8px;border-radius:12px;font-size:10px;letter-spacing:.01em}
 .v44-actions{gap:9px;margin-bottom:21px}.v44-action{min-height:70px;border-radius:13px;padding:11px 14px}.v44-action .ico{font-size:25px;width:34px}.v44-action strong{font-size:15px;font-weight:700;letter-spacing:-.01em}.v44-action small{font-size:11px;line-height:1.35;margin-top:3px}.v44-action .arrow{font-size:22px}
 .v44-pending{padding:12px 13px;border-radius:13px;margin-bottom:10px}.v44-pending .name{font-size:15px}.v44-pending .sub{font-size:10px}
 .v44-active-title{margin:21px 2px 11px}.v44-active-title h3{font-family:var(--v44-display);font-size:22px;font-weight:400;letter-spacing:-.02em}
