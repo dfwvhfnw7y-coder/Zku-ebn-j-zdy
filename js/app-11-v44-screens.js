@@ -64,3 +64,6 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
+
+/* v44: load final QR/history polish */
+(function(){var s=document.createElement('script');s.src='js/app-12-v44-polish.js';document.body.appendChild(s)})();
