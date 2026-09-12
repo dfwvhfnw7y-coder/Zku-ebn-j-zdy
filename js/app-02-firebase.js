@@ -48,10 +48,6 @@ function initApp(){
       } else if(_urlCust){showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP)}
     }).catch(function(err){flash('Chyba: '+err.message,true)});
   }
-  // REVIZE 01: REST nacitani jen jako fallback, kdyz Firebase SDK neni dostupne.
-  // Kdyz fbReady === true, o rides i customers se stara ridesRef.on / customersRef.on
-  // (real-time listenery vyse). Soubezny REST polling byl redundantni a zpusoboval
-  // prekreslovani UI + race s _pendingRide. Vetev _hasUrlParams (QR/fotoaparat) beze zmeny.
   if(!fbReady){
     if(!_hasUrlParams){loadRidesREST();loadCustomersREST();loadEventsREST()}
     setInterval(function(){loadRidesREST();loadCustomersREST();loadEventsREST()},5000);
@@ -110,4 +106,15 @@ function endRideTx(key){
       return cur;
     });
   } else { var r=findRideByKey(key);if(r){r.end=new Date().toISOString();saveRideREST(r)} }
+}
+
+/* V44: one multi-location write for customer -> vehicle handoff. */
+function handoffRideTx(oldRides,oldCar,newRide){
+  if(!(fbReady&&db&&ridesRef))return null;
+  var now=new Date().toISOString(),updates={},seen={};
+  for(var i=0;i<(oldRides||[]).length;i++){var r=oldRides[i];if(!r||!r._key||seen[r._key])continue;seen[r._key]=true;updates['rides/'+r._key+'/end']=now;r.end=now}
+  if(oldCar&&oldCar._key&&!seen[oldCar._key]){seen[oldCar._key]=true;updates['rides/'+oldCar._key+'/end']=now;oldCar.end=now}
+  var ref=ridesRef.push();newRide._key=ref.key;updates['rides/'+ref.key]=cleanRide(newRide);
+  db.ref().update(updates);
+  return newRide;
 }
