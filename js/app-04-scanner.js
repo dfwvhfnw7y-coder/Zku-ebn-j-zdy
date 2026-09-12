@@ -30,6 +30,12 @@ function startScan(mode){
     if(!error)document.getElementById('scanFoot').textContent='Namiřte QR kód do rámečku';
   }).catch(function(err){document.getElementById('scanFoot').textContent='Chyba: '+err.message});
 }
-function closeScan(){if(scanControls){try{scanControls.stop()}catch(e){}}scanControls=null;torchOn=false;var v=document.getElementById('scanVideo');if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null}document.getElementById('scanOverlay').classList.remove('show');scanMode=null}
+function closeScan(){
+  var cancelStaged=scanMode==='car'&&!!pendingCustomer;
+  if(scanControls){try{scanControls.stop()}catch(e){}}scanControls=null;torchOn=false;
+  var v=document.getElementById('scanVideo');if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null}
+  document.getElementById('scanOverlay').classList.remove('show');scanMode=null;
+  if(cancelStaged){pendingCustomer=null;flash('Výběr zákazníka zrušen')}
+}
 var torchOn=false;
 function toggleTorch(){var v=document.getElementById('scanVideo');if(!v||!v.srcObject)return;var track=v.srcObject.getVideoTracks()[0];if(!track)return;torchOn=!torchOn;track.applyConstraints({advanced:[{torch:torchOn}]}).then(function(){document.getElementById('torchBtn').style.opacity=torchOn?'1':'0.5'}).catch(function(){flash('Svítilna není dostupná',true);torchOn=false})}
