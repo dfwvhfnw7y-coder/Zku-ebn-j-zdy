@@ -16,8 +16,9 @@
     hero.insertAdjacentElement('afterend',pending);
 
     var actions=document.createElement('div');actions.className='v44-actions';actions.id='v44Actions';
-    actions.innerHTML='<button type="button" class="v44-action primary" id="v44PickCustomer"><span class="ico">👤</span><span class="copy"><strong>Vybrat zákazníka</strong><small>Začněte výběrem zákazníka</small></span><span class="arrow">›</span></button><button type="button" class="v44-action" id="v44ScanCar"><span class="ico">▦</span><span class="copy"><strong>Naskenovat vozidlo</strong><small>QR kód vozidla</small></span><span class="arrow">›</span></button>';
+    actions.innerHTML='<button type="button" class="v44-action primary v44-action-customer-scan" id="v44ScanCustomer"><span class="ico">▦</span><span class="copy"><strong>Naskenovat zákazníka</strong><small>QR kód ze zákaznické kartičky</small></span><span class="arrow">›</span></button><button type="button" class="v44-action" id="v44PickCustomer"><span class="ico">👤</span><span class="copy"><strong>Vybrat ze seznamu</strong><small>Zákazník bez QR kartičky</small></span><span class="arrow">›</span></button><button type="button" class="v44-action" id="v44ScanCar"><span class="ico">🚗</span><span class="copy"><strong>Naskenovat vozidlo</strong><small>QR kód vozidla</small></span><span class="arrow">›</span></button>';
     pending.insertAdjacentElement('afterend',actions);
+    document.getElementById('v44ScanCustomer').onclick=function(){startScan('customer')};
     document.getElementById('v44PickCustomer').onclick=function(){openCustomerPicker()};
     document.getElementById('v44ScanCar').onclick=function(){startScan('car')};
 
@@ -52,10 +53,17 @@
     if(sync){var mo=new MutationObserver(function(){var txt=sync.textContent;if(txt==='Online'||txt==='Offline')return;sync.setAttribute('data-raw-sync',txt);sync.textContent=(txt.indexOf('🔴')>=0||txt.indexOf('🟡')>=0)?'Offline':'Online'});mo.observe(sync,{childList:true,characterData:true,subtree:true});syncLabel()}
   }
   window.renderV44State=function(){
-    var bar=document.getElementById('v44Pending'),name=document.getElementById('v44PendingName'),pick=document.getElementById('v44PickCustomer');
+    var bar=document.getElementById('v44Pending'),name=document.getElementById('v44PendingName'),pick=document.getElementById('v44PickCustomer'),scan=document.getElementById('v44ScanCustomer');
     if(!bar||!name)return;
-    if(pendingCustomer){bar.classList.add('show');name.textContent=pendingCustomer.name||'Zákazník';if(pick){pick.querySelector('strong').textContent=pendingCustomer.name||'Zákazník';pick.querySelector('small').textContent='Zákazník vybrán · naskenujte vozidlo'}}
-    else{bar.classList.remove('show');if(pick){pick.querySelector('strong').textContent='Vybrat zákazníka';pick.querySelector('small').textContent='Začněte výběrem zákazníka'}}
+    if(pendingCustomer){
+      bar.classList.add('show');name.textContent=pendingCustomer.name||'Zákazník';
+      if(pick){pick.querySelector('strong').textContent='Vybrat jiného';pick.querySelector('small').textContent='Změnit zákazníka ze seznamu'}
+      if(scan){scan.querySelector('strong').textContent='Naskenovat jiného zákazníka';scan.querySelector('small').textContent='Načíst jinou QR kartičku'}
+    }else{
+      bar.classList.remove('show');
+      if(pick){pick.querySelector('strong').textContent='Vybrat ze seznamu';pick.querySelector('small').textContent='Zákazník bez QR kartičky'}
+      if(scan){scan.querySelector('strong').textContent='Naskenovat zákazníka';scan.querySelector('small').textContent='QR kód ze zákaznické kartičky'}
+    }
   };
   function install(){addStyle();installHeader();installHero();document.body.classList.add('v44-ready');renderV44State()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
