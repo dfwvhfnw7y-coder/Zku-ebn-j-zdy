@@ -22,7 +22,7 @@
     compressPhoto(file).then(function(imageData){st.textContent='Ukládám vůz…';var data={name:name,imageData:imageData||old.imageData||'',imageUrl:old.imageUrl||'',hero:!!old.hero,updated:new Date().toISOString()};return ref.child(key).set(data)}).then(function(){uploading=false;st.className='v44-upload-state ok';st.textContent='Uloženo.';setTimeout(closeFleetModal,350)}).catch(function(e){uploading=false;st.className='v44-upload-state err';st.textContent='Fotografii se nepodařilo uložit: '+(e&&e.message?e.message:e)})
   }
   window.v44FleetEdit=function(key){var v=fleet.filter(function(x){return x._key===key})[0];openFleetModal(v?v.name:'')};
-  window.v44FleetHero=function(key){var ref=currentRef();if(!ref)return;var updates={};fleet.forEach(function(v){updates[v._key+'/hero']=v._key===key});ref.update(updates)};
+  window.v44FleetHero=function(key){var ref=currentRef();if(!ref)return;var current=fleet.filter(function(v){return v._key===key})[0];var clear=!!(current&&current.hero),updates={};fleet.forEach(function(v){updates[v._key+'/hero']=clear?false:(v._key===key)});ref.update(updates)};
   function rebindOnEventChange(){var sel=document.getElementById('eventSelect');if(!sel)return;sel.addEventListener('change',function(){if(fleetRef)fleetRef.off();setTimeout(listen,50)})}
   function install(){addCss();installUi();listen();rebindOnEventChange()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
