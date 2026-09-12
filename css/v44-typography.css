@@ -1,0 +1,28 @@
+/* ── V44 typography + proportion pass ── */
+:root{--v44-display:Georgia,'Times New Roman',serif;--v44-ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+body.v44-ready{font-family:var(--v44-ui);letter-spacing:-.005em}
+body.v44-ready .hdr{height:62px;padding:10px 16px}
+body.v44-ready .hdr h1{font-family:var(--v44-display);font-size:18px;line-height:1;font-weight:400;letter-spacing:-.01em}
+body.v44-ready .hdr h1::before{width:31px;height:31px;margin-right:9px;font-size:12px;opacity:.94}
+body.v44-ready #syncStatus,body.v44-ready #verBadge{font-size:10px!important;letter-spacing:.02em}
+body.v44-ready .event-bar{padding:9px 14px 11px}
+body.v44-ready #eventSelect{height:50px!important;border-radius:12px!important;font-size:14px!important;font-weight:650!important}
+body.v44-ready .event-bar .btn{height:50px;min-width:46px}
+.v44-hero{min-height:222px;margin-bottom:17px;padding:26px 24px 25px;background:linear-gradient(180deg,rgba(5,12,16,.03),rgba(5,12,16,.96)),radial-gradient(circle at 72% 18%,#3b4b53 0,#202b31 26%,#0c171c 62%,#071015 100%)}
+.v44-hero::after{width:230px;height:82px;right:-22px;bottom:27px;opacity:.62}
+.v44-hero-title{font-family:var(--v44-display);font-size:38px;line-height:.98;font-weight:400;letter-spacing:-.035em;max-width:70%}
+.v44-hero-sub{font-size:15px;font-weight:400;letter-spacing:.015em;color:#cbd6da;margin-top:10px}
+.v44-flow{margin:0 0 16px;gap:7px}.v44-flow .step{min-height:58px;padding:9px 7px;border-radius:12px}.v44-flow .num{width:23px;height:23px;font-size:10px}.v44-flow strong{font-size:11px;font-weight:650;letter-spacing:.01em}.v44-flow small{font-size:9px;line-height:1.25}
+.v44-actions{gap:9px;margin-bottom:21px}.v44-action{min-height:70px;border-radius:13px;padding:11px 14px}.v44-action .ico{font-size:25px;width:34px}.v44-action strong{font-size:15px;font-weight:700;letter-spacing:-.01em}.v44-action small{font-size:11px;line-height:1.35;margin-top:3px}.v44-action .arrow{font-size:22px}
+.v44-pending{padding:12px 13px;border-radius:13px;margin-bottom:10px}.v44-pending .name{font-size:15px}.v44-pending .sub{font-size:10px}
+.v44-active-title{margin:21px 2px 11px}.v44-active-title h3{font-family:var(--v44-display);font-size:22px;font-weight:400;letter-spacing:-.02em}
+.v44-ride-card{border-radius:14px;padding:15px;margin-bottom:9px}.v44-ride-card .car{font-size:16px;font-weight:720;letter-spacing:-.01em}.v44-ride-card .customer{font-size:12px}.v44-ride-card .meta{font-size:10px;line-height:1.45}.v44-ride-card .end{height:38px;font-size:12px}
+.v44-section-head,.v44-history-title{padding:6px 2px 15px}.v44-section-head h2,.v44-history-title h2{font-family:var(--v44-display);font-size:29px!important;font-weight:400;letter-spacing:-.025em;line-height:1}.v44-section-head p,.v44-history-title p{font-size:11px!important;line-height:1.4;color:#95a6ae!important;margin-top:6px!important}
+body.v44-ready .card{padding:17px;border-radius:14px}.v44-qr-type strong{font-size:15px}.v44-qr-type small{font-size:10px;line-height:1.4}
+body.v44-ready .inp{font-size:14px;min-height:46px;padding:11px 13px}
+body.v44-ready .btn{font-size:14px;min-height:44px}
+.v44-history-card{padding:15px;border-radius:13px;margin-bottom:8px}.v44-history-card .car{font-size:15px;font-weight:720}.v44-history-card .time,.v44-history-card .customer,.v44-history-card .bottom{font-size:10px}.v44-history-card .customer small{font-size:9px}
+body.v44-ready .tabs{height:68px}.tab{letter-spacing:.015em!important}
+body.v44-ready .confirm-box .value{font-family:var(--v44-display);font-size:24px;font-weight:400;letter-spacing:-.02em}
+body.v44-ready .pin-box h2{font-size:27px!important;letter-spacing:-.025em}
+@media(min-width:760px){.v44-hero{min-height:260px;padding:32px}.v44-hero-title{font-size:48px;max-width:58%}.v44-hero-sub{font-size:17px}.v44-action{min-height:78px}.v44-active-title h3{font-size:25px}}
