@@ -18,6 +18,7 @@ try{
 function initApp(){
   if(!db)return;
   ridesRef=db.ref('rides');
+  eventsRef=db.ref('events');
   var customersRef=db.ref('customers');
   ridesRef.on('value',function(snapshot){
     var data=snapshot.val();rides=[];
@@ -30,16 +31,20 @@ function initApp(){
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var c=data[keys[i]];c._key=keys[i];regCustomers.push(c)}}
     regCustomers.sort(function(a,b){return(a.name||'').localeCompare(b.name||'','cs')});
   });
+  eventsRef.on('value',function(snapshot){
+    var data=snapshot.val();events=[];
+    if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var e=data[keys[i]];if(!e||!e.name)continue;e._key=keys[i];events.push(e)}}
+  });
   db.ref('.info/connected').on('value',function(snap){document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}'});
   if(_hasUrlParams){
     loadRidesREST().then(function(){
       if(_urlCar){
         var ev=document.getElementById('eventName').value.trim();
-        if(!ev){var sh=currentEventFromRides();if(sh){ev=sh;document.getElementById('eventName').value=sh;saveEventName()}}
+        if(!ev){var sh=currentEventFromRides();if(sh){ev=sh.name;document.getElementById('eventName').value=sh.name;currentEventId=sh.id||'';persistEventSelection(sh.name,currentEventId);saveEventName()}}
         if(!ev){warnEvent();return}
         var ex=findActiveByCarName(_urlCar);
         var p1=ex?(function(){ex.end=new Date().toISOString();return saveRideREST(ex)})():Promise.resolve();
-        p1.then(function(){var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev};return saveRideREST(nr)}).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);loadRidesREST()});
+        p1.then(function(){var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev,eventId:getCurrentEventId()};return saveRideREST(nr)}).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);loadRidesREST()});
       } else if(_urlCust){showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP)}
     }).catch(function(err){flash('Chyba: '+err.message,true)});
   }
@@ -48,8 +53,8 @@ function initApp(){
   // (real-time listenery vyse). Soubezny REST polling byl redundantni a zpusoboval
   // prekreslovani UI + race s _pendingRide. Vetev _hasUrlParams (QR/fotoaparat) beze zmeny.
   if(!fbReady){
-    if(!_hasUrlParams){loadRidesREST();loadCustomersREST()}
-    setInterval(function(){loadRidesREST();loadCustomersREST()},5000);
+    if(!_hasUrlParams){loadRidesREST();loadCustomersREST();loadEventsREST()}
+    setInterval(function(){loadRidesREST();loadCustomersREST();loadEventsREST()},5000);
   }
 }
 function doAuth(){
@@ -81,9 +86,9 @@ function fbDeleteAll(){
 function addCustomerTx(ride,obj){
   if(fbReady&&ridesRef&&ride._key){
     ridesRef.child(ride._key).transaction(function(cur){
-      if(cur===null)return cur;                 // jízda neexistuje -> nech Firebase rozhodnout
+      if(cur===null)return cur;
       if(!cur.customers)cur.customers=[];
-      for(var i=0;i<cur.customers.length;i++){  // ochrana proti duplicitě (jméno+email) -> abort
+      for(var i=0;i<cur.customers.length;i++){
         var c=cur.customers[i],cn=(typeof c==='object'?c.name:c);
         if((cn||'').toLowerCase()===(obj.name||'').toLowerCase()
            &&(typeof c==='object'?(c.email||''):'')===(obj.email||''))return;
@@ -91,7 +96,7 @@ function addCustomerTx(ride,obj){
       cur.customers.push(obj);
       return cur;
     });
-  } else {                                      // fallback (offline / SDK není) — původní chování
+  } else {
     if(!ride.customers)ride.customers=[];
     ride.customers.push(obj);
     saveRideREST(ride);
@@ -100,7 +105,7 @@ function addCustomerTx(ride,obj){
 function endRideTx(key){
   if(fbReady&&ridesRef){
     ridesRef.child(key).transaction(function(cur){
-      if(cur===null||cur.end)return cur;        // už ukončeno / neexistuje
+      if(cur===null||cur.end)return cur;
       cur.end=new Date().toISOString();
       return cur;
     });
