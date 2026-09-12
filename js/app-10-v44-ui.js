@@ -14,8 +14,8 @@
     panel.insertBefore(hero,panel.firstChild);
 
     var pending=document.createElement('div');pending.id='v44Pending';pending.className='v44-pending';
-    pending.innerHTML='<div class="v44-avatar">👤</div><div><div class="name" id="v44PendingName"></div><div class="sub">Vybraný zákazník · dalším krokem je vozidlo</div></div><button class="change" type="button">Změnit</button>';
-    pending.querySelector('.change').onclick=function(){pendingCustomer=null;openCustomerPicker();renderV44State()};
+    pending.innerHTML='<div class="v44-avatar">👤</div><div><div class="name" id="v44PendingName"></div><div class="sub">Vybraný zákazník · dalším krokem je vozidlo</div></div><button class="change" type="button">Zrušit</button>';
+    pending.querySelector('.change').onclick=function(){var n=pendingCustomer&&pendingCustomer.name?pendingCustomer.name:'Zákazník';pendingCustomer=null;renderV44State();if(typeof renderFlow==='function')renderFlow();flash('Výběr zákazníka zrušen: '+n)};
     hero.insertAdjacentElement('afterend',pending);
 
     var actions=document.createElement('div');actions.className='v44-actions';actions.id='v44Actions';
