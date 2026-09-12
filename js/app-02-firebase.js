@@ -39,12 +39,8 @@ function initApp(){
   if(_hasUrlParams){
     loadRidesREST().then(function(){
       if(_urlCar){
-        var ev=document.getElementById('eventName').value.trim();
-        if(!ev){var sh=currentEventFromRides();if(sh){ev=sh.name;document.getElementById('eventName').value=sh.name;currentEventId=sh.id||'';persistEventSelection(sh.name,currentEventId);saveEventName()}}
-        if(!ev){warnEvent();return}
-        var ex=findActiveByCarName(_urlCar);
-        var p1=ex?(function(){ex.end=new Date().toISOString();return saveRideREST(ex)})():Promise.resolve();
-        p1.then(function(){var nr={car:_urlCar,start:new Date().toISOString(),end:null,customers:[],event:ev,eventId:getCurrentEventId()};return saveRideREST(nr)}).then(function(saved){lastActiveCarId=saved._key;flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+_urlCar);loadRidesREST()});
+        flash('🚗 '+_urlCar+' · nejdřív vyberte zákazníka v aplikaci',true);
+        if(typeof switchTab==='function')switchTab('scan');
       } else if(_urlCust){showCustConfirm(_urlCust,_urlEmail,_urlPhone,_urlAddr,_urlOP)}
     }).catch(function(err){flash('Chyba: '+err.message,true)});
   }
