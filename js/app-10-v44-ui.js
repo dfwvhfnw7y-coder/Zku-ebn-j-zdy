@@ -44,7 +44,7 @@
     s.textContent=(raw.indexOf('🔴')>=0||raw.indexOf('🟡')>=0)?'Offline':'Online';
   }
   function installHeader(){
-    var h=document.querySelector('.hdr h1');if(h)h.textContent='Mercedes-Benz';
+    var h=document.querySelector('.hdr h1');if(h)h.textContent='S. & W. Automobily s.r.o.';
     var ver=document.getElementById('verBadge');if(ver)ver.textContent='v44';
     var tabs={tabScan:'Domů',tabGen:'QR kódy',tabLog:'Historie'};
     Object.keys(tabs).forEach(function(id){var x=document.getElementById(id);if(x)x.textContent=tabs[id]});
