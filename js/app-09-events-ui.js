@@ -64,3 +64,6 @@ setInterval(function(){
   var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')}).join('|');
   if(sig!==_eventUiSig){_eventUiSig=sig;renderEventSelector()}
 },750);
+
+/* v44: visual layer loads after the functional v43 modules */
+(function(){var s=document.createElement('script');s.src='js/app-10-v44-ui.js';document.body.appendChild(s)})();
