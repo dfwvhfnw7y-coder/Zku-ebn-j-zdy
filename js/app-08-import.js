@@ -19,7 +19,8 @@ function readImportFile(input){
 }
 function importNorm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 function detectDelimiter(line){
-  var semi=(line.match(/;/g)||[]).length,comma=(line.match(/,/g)||[]).length;
+  var semi=(line.match(/;/g)||[]).length,comma=(line.match(/,/g)||[]).length,tab=(line.match(/\t/g)||[]).length;
+  if(tab>=semi&&tab>=comma)return'\t';
   return semi>=comma?';':',';
 }
 function parseDelimitedLine(line,delimiter){
@@ -61,6 +62,15 @@ function importDuplicateReason(row,eid,ev){
   }
   return sameName?'__WARN_NAME__':'';
 }
+function importDuplicateInPreview(row,rows){
+  var em=(row.email||'').trim().toLowerCase(),ph=(row.phone||'').replace(/\s+/g,'');
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i],re=(r.email||'').trim().toLowerCase(),rp=(r.phone||'').replace(/\s+/g,'');
+    if(em&&re===em)return'Duplicitní e-mail v importu';
+    if(ph&&rp===ph)return'Duplicitní telefon v importu';
+  }
+  return'';
+}
 function buildImportPreview(){
   var text=(document.getElementById('importText').value||'').replace(/^\uFEFF/,'').trim();
   if(!text){flash('Vlož CSV data',true);return}
@@ -77,7 +87,7 @@ function buildImportPreview(){
     };
     if(!row.name){row.status='error';row.note='Chybí jméno'}
     else{
-      var dup=importDuplicateReason(row,eid,ev);
+      var dup=importDuplicateInPreview(row,rows)||importDuplicateReason(row,eid,ev);
       if(dup==='__WARN_NAME__'){row.status='warn';row.note='Stejné jméno už existuje — bude přidán jako nový'}
       else if(dup){row.status='duplicate';row.note=dup}
     }
