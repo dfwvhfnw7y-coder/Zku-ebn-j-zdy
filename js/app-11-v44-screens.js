@@ -14,7 +14,9 @@
   function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-screens.css';document.head.appendChild(l);installScanCustomerCard();if(window.renderActive)renderActive();setInterval(function(){if(document.body.classList.contains('v44-ready')&&document.getElementById('activeSection'))renderActive()},30000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
-/* v44: load final QR/history polish */
-(function(){var s=document.createElement('script');s.src='js/app-12-v44-polish.js';document.body.appendChild(s)})();
-/* v44: load responsive/accessibility polish last */
-(function(){var s=document.createElement('script');s.src='js/app-13-v44-responsive.js';document.body.appendChild(s)})();
+/* v44: deterministic module chain: polish -> responsive -> fleet -> event fleet */
+(function(){
+  var s=document.createElement('script');s.src='js/app-12-v44-polish.js';
+  s.onload=function(){var x=document.createElement('script');x.src='js/app-13-v44-responsive.js';document.body.appendChild(x)};
+  document.body.appendChild(s);
+})();
