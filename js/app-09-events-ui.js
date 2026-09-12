@@ -33,26 +33,34 @@ function renderEventSelector(){
     if(legacy){selectEventById(legacy._key,false);sel.value=legacy._key}
   }
 }
+function clearTransientEventUi(){
+  if(typeof pendingCustomer!=='undefined')pendingCustomer=null;
+  if(typeof pendingConfirm!=='undefined')pendingConfirm=null;
+  var confirmEl=document.getElementById('confirmOverlay');if(confirmEl)confirmEl.classList.remove('show');
+  var scanEl=document.getElementById('scanOverlay');if(scanEl&&scanEl.classList.contains('show')&&typeof closeScan==='function')closeScan();
+  var pickEl=document.getElementById('cpickOverlay');if(pickEl)pickEl.classList.remove('show');
+  if(typeof window.v44CardPrintMode!=='undefined')window.v44CardPrintMode=false;
+}
 function selectEventById(id,notify){
   var previousId=currentEventId||'';
   var e=eventById(id);
   if(!e){
-    if(previousId&&typeof pendingCustomer!=='undefined')pendingCustomer=null;
+    if(previousId)clearTransientEventUi();
     currentEventId='';document.getElementById('eventName').value='';persistEventSelection('','');
     if(window.renderV44State)renderV44State();
     if(notify!==false)flash('Vyber akci',true);return;
   }
-  if(previousId&&previousId!==e._key&&typeof pendingCustomer!=='undefined')pendingCustomer=null;
+  if(previousId&&previousId!==e._key)clearTransientEventUi();
   currentEventId=e._key;document.getElementById('eventName').value=e.name||'';persistEventSelection(e.name||'',e._key);
   clearEventWarn();if(notify!==false)flash('📋 Akce: '+(e.name||''));renderAll();
   if(window.renderV44State)renderV44State();
-  if(document.getElementById('cpickOverlay').classList.contains('show'))renderCustomerPicker();
+  var picker=document.getElementById('cpickOverlay');if(picker&&picker.classList.contains('show'))renderCustomerPicker();
 }
 function onEventSelect(){selectEventById(document.getElementById('eventSelect').value,true)}
 function createNewEvent(){
   var name=prompt('Název nové akce:');if(name===null)return;name=name.trim();
   if(!name){flash('Název akce je povinný',true);return}
-  if(typeof pendingCustomer!=='undefined')pendingCustomer=null;
+  clearTransientEventUi();
   var id=newEventId(),obj={name:name,createdAt:new Date().toISOString(),status:'active'};
   events.push({_key:id,name:obj.name,createdAt:obj.createdAt,status:obj.status});currentEventId=id;
   document.getElementById('eventName').value=name;persistEventSelection(name,id);
