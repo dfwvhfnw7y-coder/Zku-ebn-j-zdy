@@ -1,0 +1,66 @@
+/* ── V44 screen presentation: keeps v43 business logic intact ── */
+(function(){
+  function esc44(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function rideCustomerLabel(r){var cs=r.customers||[];if(!cs.length)return'Bez zákazníka';return cs.map(function(c){return custName(c)}).join(', ')}
+  function liveDuration(start){if(!start)return'';var m=Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/60000));return m<60?m+' min':Math.floor(m/60)+' h '+(m%60)+' min'}
+
+  window.renderActive=function(){
+    var a=getActiveRides(),el=document.getElementById('activeSection');if(!el)return;
+    if(!a.length){el.innerHTML='';return}
+    var h='<div class="v44-active-title"><h3>Aktivní jízdy ('+a.length+')</h3>'+(a.length>1?'<span onclick="endAllRides()" style="cursor:pointer">Ukončit vše</span>':'')+'</div>';
+    for(var i=0;i<a.length;i++){
+      var r=a[i];
+      h+='<div class="v44-ride-card"><div class="row"><div class="car">'+esc44(r.car)+'</div><span class="state">Probíhá</span></div>';
+      h+='<div class="customer">👤 '+esc44(rideCustomerLabel(r))+'</div>';
+      h+='<div class="meta"><span>◷ Start '+esc44(fmtTime(r.start))+'</span><span>⏱ '+esc44(liveDuration(r.start))+'</span></div>';
+      h+='<button class="end" onclick="endRide(\''+r._key+'\')">Ukončit jízdu</button></div>';
+    }
+    el.innerHTML=h;
+  };
+
+  var originalRenderCustomerPicker=window.renderCustomerPicker;
+  window.renderCustomerPicker=function(){
+    originalRenderCustomerPicker();
+    var list=document.getElementById('cpickList');if(!list)return;
+    var items=list.querySelectorAll('.cpick-item');
+    for(var i=0;i<items.length;i++)items[i].setAttribute('role','button');
+  };
+
+  function installScanCustomerCard(){
+    var body=document.querySelector('.scan-body');if(!body||document.getElementById('v44ScanCustomer'))return;
+    var card=document.createElement('div');card.id='v44ScanCustomer';card.className='v44-scan-customer';
+    card.innerHTML='<div class="avatar">👤</div><div class="copy"><strong id="v44ScanCustomerName"></strong><small>Jízda bude vytvořena pro tohoto zákazníka</small></div>';
+    body.appendChild(card);
+  }
+  function renderScanCustomer(){
+    var card=document.getElementById('v44ScanCustomer'),name=document.getElementById('v44ScanCustomerName');if(!card||!name)return;
+    if(scanMode==='car'&&pendingCustomer){name.textContent=pendingCustomer.name||'Zákazník';card.classList.add('show')}else card.classList.remove('show');
+  }
+  var originalStartScan=window.startScan;
+  window.startScan=function(mode){
+    originalStartScan(mode);
+    var label=document.getElementById('scanLabel'),foot=document.getElementById('scanFoot');
+    if(label)label.textContent=mode==='car'?'Naskenovat vozidlo':'Naskenovat zákazníka';
+    if(foot)foot.textContent=mode==='car'?'Přiložte QR kód na vozidle':'Přiložte QR kód zákazníka';
+    renderScanCustomer();
+  };
+  var originalCloseScan=window.closeScan;
+  window.closeScan=function(){originalCloseScan();renderScanCustomer();if(window.renderV44State)renderV44State()};
+
+  var originalSelectCustomer=window.selectCustomerForRide;
+  window.selectCustomerForRide=function(name,email,phone,addr,op,startScanner){
+    originalSelectCustomer(name,email,phone,addr,op,startScanner);
+    if(window.renderV44State)renderV44State();
+    setTimeout(renderScanCustomer,150);
+  };
+  var originalAssign=window.assignPendingCustomerToCar;
+  window.assignPendingCustomerToCar=function(name){var x=originalAssign(name);if(window.renderV44State)renderV44State();renderScanCustomer();return x};
+
+  function install(){
+    var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-screens.css';document.head.appendChild(l);
+    installScanCustomerCard();
+    if(window.renderActive)renderActive();
+    setInterval(function(){if(document.body.classList.contains('v44-ready')&&document.getElementById('activeSection'))renderActive()},30000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
