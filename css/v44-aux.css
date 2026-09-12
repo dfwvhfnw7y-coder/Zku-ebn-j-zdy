@@ -1,0 +1,14 @@
+/* ── V44 auxiliary screens ── */
+body.v44-ready .pin-overlay{background:radial-gradient(circle at 50% 20%,#17313e 0,#081116 38%,#050b0f 80%);padding:24px}
+body.v44-ready .pin-box{max-width:360px;padding:28px 22px;border:1px solid #263b46;border-radius:22px;background:rgba(10,23,30,.82);box-shadow:0 30px 90px rgba(0,0,0,.45);backdrop-filter:blur(18px)}
+body.v44-ready .pin-box h2{font-family:Georgia,'Times New Roman',serif;font-size:27px;font-weight:500;margin-bottom:8px}
+body.v44-ready .pin-box h2::before{content:'◉';display:grid;place-items:center;width:52px;height:52px;margin:0 auto 18px;border:1px solid #c8d6db;border-radius:50%;font-family:Arial,sans-serif;font-size:18px}
+body.v44-ready .pin-box .pin-sub{color:#96a9b2;margin-bottom:26px}
+body.v44-ready .pin-dots .dot{width:13px;height:13px;border-color:#39515d}.pin-dots .dot.filled{background:#12dff1;border-color:#12dff1;box-shadow:0 0 14px rgba(18,223,241,.4)}
+body.v44-ready .pin-key{background:#10202a;border-color:#2d4551;border-radius:14px;padding:17px;color:#f1f6f8}.pin-key:active{background:#12dff1;color:#001316}
+body.v44-ready .confirm-overlay{background:rgba(0,7,10,.78);backdrop-filter:blur(8px)}
+body.v44-ready .confirm-box{padding:26px 22px}.confirm-box .icon{width:64px;height:64px;margin:0 auto 15px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(180deg,#17313d,#10222b);font-size:30px;border:1px solid #304a57}.confirm-box .label{color:#8fa3ac}.confirm-box .value{font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:500}.confirm-box .info{line-height:1.55}.confirm-box .btns{margin-top:18px}
+body.v44-ready .import-overlay{background:rgba(0,7,10,.8);backdrop-filter:blur(10px)}
+body.v44-ready .import-sheet{background:#0b171d;border:1px solid #2d424d;border-radius:22px 22px 0 0;box-shadow:0 -24px 80px rgba(0,0,0,.5);padding:20px 16px max(20px,env(safe-area-inset-bottom))}
+body.v44-ready .import-head{font-family:Georgia,'Times New Roman',serif;font-size:22px;border-bottom:1px solid #243844;padding-bottom:14px;margin-bottom:14px}.import-help{color:#99abb4!important;line-height:1.55}.import-text{min-height:150px!important;background:#0f2028!important}.import-preview{border-color:#29404b!important;background:#0b171d!important;border-radius:13px!important}.import-summary{background:#10232b!important;border-radius:10px;color:#cbd8dd!important}.import-row{border-color:#253944!important;padding:10px!important}
+body.v44-ready .cpick-empty{color:#82949d}.empty .ico{font-size:34px;margin-bottom:8px;color:#12dff1}
