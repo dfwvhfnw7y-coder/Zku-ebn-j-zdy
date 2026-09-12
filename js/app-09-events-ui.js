@@ -81,6 +81,6 @@ setInterval(function(){
 
 /* v44: visual modules load after the functional v43 modules. */
 (function(){
-  function load(src,done){var s=document.createElement('script');s.src=src;s.onload=done||null;document.body.appendChild(s)}
+  function load(src,done){var s=document.createElement('script');s.src=src+'?v=44';s.onload=done||null;document.body.appendChild(s)}
   load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')});
 })();
