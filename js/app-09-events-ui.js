@@ -34,24 +34,30 @@ function renderEventSelector(){
   }
 }
 function selectEventById(id,notify){
+  var previousId=currentEventId||'';
   var e=eventById(id);
   if(!e){
+    if(previousId&&typeof pendingCustomer!=='undefined')pendingCustomer=null;
     currentEventId='';document.getElementById('eventName').value='';persistEventSelection('','');
+    if(window.renderV44State)renderV44State();
     if(notify!==false)flash('Vyber akci',true);return;
   }
+  if(previousId&&previousId!==e._key&&typeof pendingCustomer!=='undefined')pendingCustomer=null;
   currentEventId=e._key;document.getElementById('eventName').value=e.name||'';persistEventSelection(e.name||'',e._key);
   clearEventWarn();if(notify!==false)flash('📋 Akce: '+(e.name||''));renderAll();
+  if(window.renderV44State)renderV44State();
   if(document.getElementById('cpickOverlay').classList.contains('show'))renderCustomerPicker();
 }
 function onEventSelect(){selectEventById(document.getElementById('eventSelect').value,true)}
 function createNewEvent(){
   var name=prompt('Název nové akce:');if(name===null)return;name=name.trim();
   if(!name){flash('Název akce je povinný',true);return}
+  if(typeof pendingCustomer!=='undefined')pendingCustomer=null;
   var id=newEventId(),obj={name:name,createdAt:new Date().toISOString(),status:'active'};
   events.push({_key:id,name:obj.name,createdAt:obj.createdAt,status:obj.status});currentEventId=id;
   document.getElementById('eventName').value=name;persistEventSelection(name,id);
   if(fbReady&&db)db.ref('events/'+id).set(obj);else fbRest('PUT','events/'+id,obj);
-  renderEventSelector();document.getElementById('eventSelect').value=id;clearEventWarn();flash('✅ Nová akce: '+name);
+  renderEventSelector();document.getElementById('eventSelect').value=id;clearEventWarn();if(window.renderV44State)renderV44State();flash('✅ Nová akce: '+name);
 }
 function warnEvent(){
   var el=document.getElementById('eventSelect')||document.getElementById('eventName');
