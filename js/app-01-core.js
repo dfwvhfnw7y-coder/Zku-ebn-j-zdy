@@ -3,8 +3,8 @@ document.getElementById('verBadge').textContent='v'+APP_VERSION;
 var FB_URL="https://testovaci-jizdy-default-rtdb.europe-west1.firebasedatabase.app";
 var BASE_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/index.html";
 var VERSION_URL="https://dfwvhfnw7y-coder.github.io/Zku-ebn-j-zdy/version.json";
-var rides=[],regCustomers=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null,_pendingRide=null;
-var fbReady=false,db=null,ridesRef=null;
+var rides=[],regCustomers=[],events=[],pendingConfirm=null,lastActiveCarId=null,scanMode=null,scanControls=null,_pendingRide=null;
+var fbReady=false,db=null,ridesRef=null,eventsRef=null,currentEventId='';
 
 /* ── PIN Lock ── */
 var PIN_CODE='7319',pinEntry='',pinLocked=true;
@@ -56,15 +56,30 @@ setTimeout(checkUpdate,2000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)checkUpdate();});
 window.addEventListener('pageshow',function(){checkUpdate();});
 
-/* ── Event name ── */
-function saveEventName(){try{localStorage.setItem('sw-event',document.getElementById('eventName').value)}catch(e){}clearEventWarn()}
+/* ── Event / eventId (v43, zpetne kompatibilni s textovym event) ── */
+function newEventId(){return'evt_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function eventById(id){for(var i=0;i<events.length;i++)if(events[i]._key===id)return events[i];return null}
+function eventByName(name){var n=(name||'').trim().toLowerCase(),best=null,bt=0;for(var i=0;i<events.length;i++){var e=events[i];if((e.name||'').trim().toLowerCase()!==n)continue;var t=new Date(e.createdAt||0).getTime()||0;if(!best||t>=bt){best=e;bt=t}}return best}
+function persistEventSelection(name,id){try{localStorage.setItem('sw-event',name||'');localStorage.setItem('sw-event-id',id||'')}catch(e){}}
+function ensureEventId(name){
+  name=(name||'').trim();if(!name)return'';
+  var storedName='';try{storedName=localStorage.getItem('sw-event')||''}catch(e){}
+  if(currentEventId&&storedName===name)return currentEventId;
+  var ex=eventByName(name);if(ex){currentEventId=ex._key;persistEventSelection(name,currentEventId);return currentEventId}
+  var id=newEventId(),obj={name:name,createdAt:new Date().toISOString(),status:'active'};
+  currentEventId=id;events.push({_key:id,name:obj.name,createdAt:obj.createdAt,status:obj.status});persistEventSelection(name,id);
+  if(fbReady&&db)db.ref('events/'+id).set(obj);else fbRest('PUT','events/'+id,obj);
+  return id;
+}
+function getCurrentEventId(){var name=(document.getElementById('eventName').value||'').trim();return name?ensureEventId(name):''}
+function saveEventName(){var name=(document.getElementById('eventName').value||'').trim();if(name)ensureEventId(name);else{currentEventId='';persistEventSelection('','')}clearEventWarn()}
 /* REVIZE ochrana akce (v39): A) zakaz prazdne akce, B) prevzeti ze sdilenych jizd */
 function warnEvent(){var el=document.getElementById('eventName');el.classList.remove('needEvent');void el.offsetWidth;el.classList.add('needEvent');el.focus();flash('\u26A0 Nejdřív vyber akci',true)}
 function clearEventWarn(){document.getElementById('eventName').classList.remove('needEvent')}
-function currentEventFromRides(){var best=null,bt=0;for(var i=0;i<rides.length;i++){var r=rides[i];if(r.end||!r.event)continue;var t=new Date(r.start).getTime()||0;if(t>=bt){bt=t;best=r.event}}return best}
+function currentEventFromRides(){var best=null,bt=0;for(var i=0;i<rides.length;i++){var r=rides[i];if(r.end||!r.event)continue;var t=new Date(r.start).getTime()||0;if(t>=bt){bt=t;best={name:r.event,id:r.eventId||''}}}return best}
 var _adoptAsked=false;
-function maybeAdoptEvent(){if(_adoptAsked)return;if(getEventName())return;var ev=currentEventFromRides();if(!ev)return;_adoptAsked=true;if(confirm('Převzít akci ze sdílených jízd?\n\n\u201E'+ev+'\u201C')){document.getElementById('eventName').value=ev;saveEventName();flash('\u{1F4CB} Akce: '+ev)}}
-document.getElementById('eventName').value=(function(){try{return localStorage.getItem('sw-event')||''}catch(e){return''}})();
+function maybeAdoptEvent(){if(_adoptAsked)return;if(getEventName())return;var ev=currentEventFromRides();if(!ev)return;_adoptAsked=true;if(confirm('Převzít akci ze sdílených jízd?\n\n\u201E'+ev.name+'\u201C')){document.getElementById('eventName').value=ev.name;currentEventId=ev.id||'';persistEventSelection(ev.name,currentEventId);saveEventName();flash('\u{1F4CB} Akce: '+ev.name)}}
+(function(){try{document.getElementById('eventName').value=localStorage.getItem('sw-event')||'';currentEventId=localStorage.getItem('sw-event-id')||''}catch(e){}})();
 
 /* ── URL params — grab immediately ── */
 var _p=new URLSearchParams(location.search);
@@ -105,6 +120,13 @@ function loadCustomersREST(){
     regCustomers=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var c=data[keys[i]];c._key=keys[i];regCustomers.push(c)}}
     regCustomers.sort(function(a,b){return(a.name||'').localeCompare(b.name||'','cs')});
+  });
+}
+function loadEventsREST(){
+  return fbRest('GET','events').then(function(data){
+    events=[];
+    if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var e=data[keys[i]];if(!e||!e.name)continue;e._key=keys[i];events.push(e)}}
+    return events;
   });
 }
 
