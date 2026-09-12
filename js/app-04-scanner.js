@@ -1,13 +1,15 @@
 /* ── ZXing Scanner ── */
+var _scanHandled=false;
 function startScan(mode){
-  scanMode=mode;
+  scanMode=mode;_scanHandled=false;
   document.getElementById('scanLabel').textContent=mode==='car'?'🚗 Skenuj QR vozidla':'👤 Skenuj QR zákazníka';
   document.getElementById('scanFoot').textContent='Spouštím kameru…';
   document.getElementById('scanOverlay').classList.add('show');
   var codeReader=new ZXingBrowser.BrowserQRCodeReader();
   codeReader.decodeFromConstraints({video:{facingMode:'environment'}},document.getElementById('scanVideo'),function(result,error,controls){
     scanControls=controls;
-    if(result){
+    if(result&&!_scanHandled){
+      _scanHandled=true;
       controls.stop();scanControls=null;document.getElementById('scanOverlay').classList.remove('show');
       var parsed=parseQRData(result.getText(),scanMode),info='',btn='Zapsat';
       if(parsed.type==='car'){
@@ -27,10 +29,11 @@ function startScan(mode){
       }
       showConfirm(parsed.type,parsed.value,info,btn,parsed.email,parsed.phone,parsed.addr,parsed.op);
     }
-    if(!error)document.getElementById('scanFoot').textContent='Namiřte QR kód do rámečku';
-  }).catch(function(err){document.getElementById('scanFoot').textContent='Chyba: '+err.message});
+    if(!error&&!_scanHandled)document.getElementById('scanFoot').textContent='Namiřte QR kód do rámečku';
+  }).catch(function(err){if(!_scanHandled)document.getElementById('scanFoot').textContent='Chyba: '+err.message});
 }
 function closeScan(){
+  _scanHandled=true;
   if(scanControls){try{scanControls.stop()}catch(e){}}scanControls=null;torchOn=false;
   var v=document.getElementById('scanVideo');if(v&&v.srcObject){v.srcObject.getTracks().forEach(function(t){t.stop()});v.srcObject=null}
   document.getElementById('scanOverlay').classList.remove('show');scanMode=null;
