@@ -21,14 +21,12 @@
     document.getElementById('v44PickCustomer').onclick=function(){openCustomerPicker()};
     document.getElementById('v44ScanCar').onclick=function(){startScan('car')};
 
-    /* Hide the old duplicate primary controls, not their functions. */
     var children=Array.prototype.slice.call(panel.children),hidden=0;
     for(var i=0;i<children.length;i++){
       var el=children[i];if(el===hero||el===pending||el===actions||el.id==='activeSection')continue;
       if(hidden<2&&el.tagName==='DIV'&&el.querySelector('button')){el.style.display='none';hidden++}
     }
 
-    /* Manual form becomes an emergency/secondary action. */
     var active=document.getElementById('activeSection'),manual=null;
     if(active){var n=active.nextElementSibling;if(n&&n.classList.contains('card'))manual=n}
     if(manual){
@@ -38,10 +36,20 @@
       manual.parentNode.insertBefore(toggle,manual);
     }
   }
+  function syncLabel(){
+    var s=document.getElementById('syncStatus');if(!s)return;
+    var raw=s.getAttribute('data-raw-sync')||s.textContent||'';
+    if(s.textContent==='Online'||s.textContent==='Offline')return;
+    s.setAttribute('data-raw-sync',s.textContent||raw);
+    s.textContent=(raw.indexOf('🔴')>=0||raw.indexOf('🟡')>=0)?'Offline':'Online';
+  }
   function installHeader(){
     var h=document.querySelector('.hdr h1');if(h)h.textContent='Mercedes-Benz';
+    var ver=document.getElementById('verBadge');if(ver)ver.textContent='v44';
     var tabs={tabScan:'Domů',tabGen:'QR kódy',tabLog:'Historie'};
     Object.keys(tabs).forEach(function(id){var x=document.getElementById(id);if(x)x.textContent=tabs[id]});
+    var sync=document.getElementById('syncStatus');
+    if(sync){var mo=new MutationObserver(function(){var txt=sync.textContent;if(txt==='Online'||txt==='Offline')return;sync.setAttribute('data-raw-sync',txt);sync.textContent=(txt.indexOf('🔴')>=0||txt.indexOf('🟡')>=0)?'Offline':'Online'});mo.observe(sync,{childList:true,characterData:true,subtree:true});syncLabel()}
   }
   window.renderV44State=function(){
     var bar=document.getElementById('v44Pending'),name=document.getElementById('v44PendingName'),pick=document.getElementById('v44PickCustomer');
