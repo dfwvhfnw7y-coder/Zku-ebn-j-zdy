@@ -13,14 +13,14 @@ function startScan(mode){
       if(parsed.type==='car'){
         var ex=findActiveByCarName(parsed.value);
         if(pendingCustomer){
-          var old=findActiveRidesWithCustomer(pendingCustomer.name);
+          var old=findActiveRidesWithCustomer(pendingCustomer.name,pendingCustomer.email,pendingCustomer.phone);
           info=pendingCustomer.name+' → '+parsed.value;
           if(old.length)info+=' · předchozí jízda se ukončí';
           if(ex&&old.indexOf(ex)===-1)info+=' · aktivní jízda auta se ukončí';
           btn='Spustit jízdu';
         }else if(ex){info='Nové kolo (předchozí se ukončí)';btn='Nové kolo'}else info='Nová jízda';
       }else{
-        var oldCust=findActiveRidesWithCustomer(parsed.value);
+        var oldCust=findActiveRidesWithCustomer(parsed.value,parsed.email,parsed.phone);
         info='Vybrat zákazníka → potom naskenovat vozidlo';
         if(oldCust.length)info+=' · nyní jede v '+oldCust[0].car;
         btn='Vybrat';
