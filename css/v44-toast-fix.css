@@ -1,0 +1,42 @@
+/* V44 mobile toast positioning fix.
+   app.css centers toasts with translateX(-50%) and its fadeIn keyframes
+   also animate that transform. V44 uses left/right bounds instead, so the
+   inherited transform was shifting the whole message half a screen left. */
+body.v44-ready .toast,
+body.v44-ready .toast.show{
+  position:fixed;
+  top:138px;
+  left:12px;
+  right:12px;
+  width:auto;
+  max-width:480px;
+  margin-left:auto;
+  margin-right:auto;
+  transform:none !important;
+  box-sizing:border-box;
+  white-space:normal !important;
+  overflow-wrap:break-word;
+  word-break:normal;
+  text-align:center;
+  line-height:1.4;
+  padding:11px 14px;
+  font-size:13px;
+  animation:v44ToastIn .22s ease-out !important;
+}
+body.v44-ready .toast.warn{
+  color:var(--v44-red);
+  border-color:var(--v44-red);
+}
+@keyframes v44ToastIn{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(max-width:380px){
+  body.v44-ready .toast,
+  body.v44-ready .toast.show{
+    left:10px;
+    right:10px;
+    font-size:12px;
+    padding:10px 12px;
+  }
+}
