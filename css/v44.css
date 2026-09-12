@@ -67,5 +67,7 @@ body.v44-ready .cpick-item .ci-name{font-size:15px;font-weight:700}.cpick-item .
 body.v44-ready .cpick-alpha{background:#071015!important;color:var(--v44-cyan)!important;padding-left:10px!important}
 body.v44-ready .confirm-box{background:#0e1b22;border-color:#334b57;border-radius:18px;box-shadow:0 22px 80px rgba(0,0,0,.55)}
 body.v44-ready .scan-top,body.v44-ready .scan-foot{background:#061015}.scan-guide{border-color:var(--v44-cyan);box-shadow:0 0 0 4000px rgba(0,0,0,.5)}.scan-guide::before{border-color:var(--v44-cyan)}
-body.v44-ready .toast{top:138px;background:#10242c;border-color:var(--v44-cyan);color:var(--v44-cyan);border-radius:12px}
+/* Toast must fit narrow phones; selected-customer confirmation is a positive state. */
+body.v44-ready .toast{top:138px;left:14px;right:14px;width:auto;max-width:calc(100vw - 28px);box-sizing:border-box;background:#10242c;border-color:var(--v44-green);color:#dfffea;border-radius:12px;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.35;text-align:center;padding:10px 12px;font-size:13px}
+@media(max-width:380px){body.v44-ready .toast{left:10px;right:10px;max-width:calc(100vw - 20px);font-size:12px;padding:9px 10px}}
 @media(min-width:760px){html,body{max-width:100%}.tabs{width:520px!important}.panel{max-width:740px!important}.v44-hero{border-radius:0 0 18px 18px}.hdr,.event-bar{max-width:740px;margin-left:auto;margin-right:auto}.v44-actions{grid-template-columns:1fr 1fr}}
