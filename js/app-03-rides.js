@@ -54,7 +54,7 @@ function handleCar(name){
   var ex=findActiveByCarName(name);
   if(ex){endRideTx(ex._key)}
   var ev=document.getElementById('eventName').value.trim();
-  var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev};
+  var nr={car:name,start:new Date().toISOString(),end:null,customers:[],event:ev,eventId:getCurrentEventId()};
   var added=fbAdd(nr);lastActiveCarId=added._key;
   _pendingRide=added;
   flash('\u{1F697} '+(ex?'Nové kolo: ':'Nová jízda: ')+name);
