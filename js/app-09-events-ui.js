@@ -1,4 +1,4 @@
-/* ── v43 Event selector ── */
+/* ── V45 Event selector + safe event management ── */
 var _eventUiSig='';
 
 /* V45 prep: remove the cold-start waterfall. The V44 modules are still executed
@@ -28,6 +28,12 @@ function sortEventsForPicker(list){
     return (new Date(b.createdAt||0).getTime()||0)-(new Date(a.createdAt||0).getTime()||0);
   });
 }
+function isArchivedEvent(e){return !!(e&&e.status==='archived')}
+function eventOption(e){
+  var label=e.name||'Bez názvu';
+  if(e.createdAt){var d=new Date(e.createdAt);if(!isNaN(d.getTime()))label+=' · '+d.toLocaleDateString('cs-CZ')}
+  return '<option value="'+esc(e._key)+'">'+esc(label)+'</option>';
+}
 function installEventSelector(){
   var input=document.getElementById('eventName');
   if(!input||document.getElementById('eventSelect'))return;
@@ -35,30 +41,64 @@ function installEventSelector(){
   var sel=document.createElement('select');
   sel.id='eventSelect';sel.className='inp';sel.style.cssText='padding:8px 10px;font-size:13px;flex:1;min-width:0';sel.onchange=onEventSelect;
   input.parentNode.insertBefore(sel,input);
+  var manage=document.createElement('button');
+  manage.type='button';manage.className='btn btn-outline btn-sm';manage.id='eventManageBtn';manage.style.cssText='padding:8px 10px;width:auto';manage.title='Správa akce';manage.textContent='•••';manage.onclick=openEventManager;
+  input.parentNode.insertBefore(manage,input.nextSibling);
   var add=document.createElement('button');
   add.type='button';add.className='btn btn-outline btn-sm';add.style.cssText='padding:8px 10px;width:auto';add.title='Nová akce';add.textContent='＋';add.onclick=createNewEvent;
-  input.parentNode.insertBefore(add,input.nextSibling);
+  input.parentNode.insertBefore(add,manage.nextSibling);
+  installEventManager();
   renderEventSelector();
+}
+function installEventManager(){
+  if(document.getElementById('v45EventManager'))return;
+  var m=document.createElement('div');m.id='v45EventManager';m.className='v45-event-modal';
+  m.innerHTML='<div class="v45-event-sheet"><div class="v45-event-head"><div><small>Správa akce</small><h3 id="v45EventManagerName">Akce</h3></div><button type="button" id="v45EventManagerClose">✕</button></div><div class="v45-event-meta" id="v45EventManagerMeta"></div><button type="button" class="v45-event-action archive" id="v45EventArchive"><span>📦</span><div><strong>Archivovat akci</strong><small>Skryje ji z běžného seznamu, data zůstanou zachována</small></div></button><button type="button" class="v45-event-action restore" id="v45EventRestore"><span>↺</span><div><strong>Obnovit akci</strong><small>Vrátí ji mezi aktivní akce</small></div></button></div>';
+  document.body.appendChild(m);
+  document.getElementById('v45EventManagerClose').onclick=closeEventManager;
+  document.getElementById('v45EventArchive').onclick=archiveCurrentEvent;
+  document.getElementById('v45EventRestore').onclick=restoreCurrentEvent;
+  m.onclick=function(e){if(e.target===m)closeEventManager()};
+}
+function openEventManager(){
+  var e=eventById(currentEventId),m=document.getElementById('v45EventManager');
+  if(!e||!m){flash('Nejdřív vyber akci',true);return}
+  document.getElementById('v45EventManagerName').textContent=e.name||'Akce';
+  document.getElementById('v45EventManagerMeta').textContent=isArchivedEvent(e)?'Archivovaná akce':'Aktivní akce';
+  document.getElementById('v45EventArchive').style.display=isArchivedEvent(e)?'none':'flex';
+  document.getElementById('v45EventRestore').style.display=isArchivedEvent(e)?'flex':'none';
+  m.classList.add('show');
+}
+function closeEventManager(){var m=document.getElementById('v45EventManager');if(m)m.classList.remove('show')}
+function activeCurrentEventRides(){try{return typeof getActiveRides==='function'?getActiveRides():[]}catch(e){return[]}}
+function archiveCurrentEvent(){
+  var e=eventById(currentEventId);if(!e)return;
+  var active=activeCurrentEventRides();
+  if(active.length){flash('Akci nelze archivovat: stále probíhá '+active.length+' jízd.',true);return}
+  if(!confirm('Archivovat akci „'+(e.name||'')+'“?\n\nJízdy, zákazníci i vozidla zůstanou zachované.'))return;
+  var patch={status:'archived',archivedAt:new Date().toISOString()};
+  var save=(fbReady&&db)?db.ref('events/'+e._key).update(patch):fbRest('PATCH','events/'+e._key,patch);
+  Promise.resolve(save).then(function(){e.status='archived';e.archivedAt=patch.archivedAt;closeEventManager();renderEventSelector();flash('📦 Akce archivována')}).catch(function(err){flash('Archivaci se nepodařilo uložit: '+(err&&err.message?err.message:err),true)});
+}
+function restoreCurrentEvent(){
+  var e=eventById(currentEventId);if(!e)return;
+  var patch={status:'active',archivedAt:null};
+  var save=(fbReady&&db)?db.ref('events/'+e._key).update(patch):fbRest('PATCH','events/'+e._key,patch);
+  Promise.resolve(save).then(function(){e.status='active';e.archivedAt=null;closeEventManager();renderEventSelector();flash('↺ Akce obnovena')}).catch(function(err){flash('Obnovení se nepodařilo uložit: '+(err&&err.message?err.message:err),true)});
 }
 function renderEventSelector(){
   var sel=document.getElementById('eventSelect');
   if(!sel)return;
-  var list=sortEventsForPicker(events),name=getEventName(),hasCurrent=false;
-  for(var z=0;z<list.length;z++)if(list[z]._key===currentEventId){hasCurrent=true;break}
-  /* Po refreshi zobrazíme poslední vybranou akci hned, i než dorazí Firebase snapshot. */
-  if(currentEventId&&name&&!hasCurrent)list.unshift({_key:currentEventId,name:name,createdAt:'',status:'local'});
+  var sorted=sortEventsForPicker(events),active=[],archived=[],name=getEventName(),hasCurrent=false;
+  for(var i=0;i<sorted.length;i++){var e=sorted[i];if(e._key===currentEventId)hasCurrent=true;(isArchivedEvent(e)?archived:active).push(e)}
+  if(currentEventId&&name&&!hasCurrent)active.unshift({_key:currentEventId,name:name,createdAt:'',status:'local'});
   var h='<option value="">Vyber akci…</option>';
-  for(var i=0;i<list.length;i++){
-    var e=list[i],label=e.name||'Bez názvu';
-    if(e.createdAt){var d=new Date(e.createdAt);if(!isNaN(d.getTime()))label+=' · '+d.toLocaleDateString('cs-CZ')}
-    h+='<option value="'+esc(e._key)+'">'+esc(label)+'</option>';
-  }
+  if(active.length){h+='<optgroup label="Aktivní akce">';for(var a=0;a<active.length;a++)h+=eventOption(active[a]);h+='</optgroup>'}
+  if(archived.length){h+='<optgroup label="Archivované">';for(var z=0;z<archived.length;z++)h+=eventOption(archived[z]);h+='</optgroup>'}
   sel.innerHTML=h;
   if(currentEventId){sel.value=currentEventId}
-  else{
-    var legacy=eventByName(name);
-    if(legacy){selectEventById(legacy._key,false);sel.value=legacy._key}
-  }
+  else{var legacy=eventByName(name);if(legacy){selectEventById(legacy._key,false);sel.value=legacy._key}}
+  var manage=document.getElementById('eventManageBtn');if(manage)manage.disabled=!currentEventId;
 }
 function clearTransientEventUi(){
   if(typeof pendingCustomer!=='undefined')pendingCustomer=null;
@@ -72,20 +112,16 @@ function goHome(){if(typeof switchTab==='function')switchTab('scan');try{window.
 function selectEventById(id,notify){
   var previousId=currentEventId||'';
   var e=eventById(id);
-  /* U právě obnovené stránky může být vybraná akce zatím jen v localStorage. */
   if(!e&&id===currentEventId&&getEventName())e={_key:id,name:getEventName(),createdAt:'',status:'local'};
   if(!e){
     if(previousId)clearTransientEventUi();
     currentEventId='';document.getElementById('eventName').value='';persistEventSelection('','');
-    if(window.renderV44State)renderV44State();
-    goHome();
-    if(notify!==false)flash('Vyber akci',true);return;
+    if(window.renderV44State)renderV44State();goHome();if(notify!==false)flash('Vyber akci',true);return;
   }
   if(previousId&&previousId!==e._key)clearTransientEventUi();
   currentEventId=e._key;document.getElementById('eventName').value=e.name||'';persistEventSelection(e.name||'',e._key);
-  clearEventWarn();if(notify!==false)flash('📋 Akce: '+(e.name||''));renderAll();
-  if(window.renderV44State)renderV44State();
-  goHome();
+  clearEventWarn();if(notify!==false)flash((isArchivedEvent(e)?'📦 Archiv: ':'📋 Akce: ')+(e.name||''));renderAll();
+  if(window.renderV44State)renderV44State();goHome();
   var picker=document.getElementById('cpickOverlay');if(picker&&picker.classList.contains('show'))renderCustomerPicker();
 }
 function onEventSelect(){selectEventById(document.getElementById('eventSelect').value,true)}
@@ -100,20 +136,13 @@ function createNewEvent(){
   var save=(fbReady&&db)?db.ref('events/'+id).set(obj):fbRest('PUT','events/'+id,obj);
   Promise.resolve(save).then(function(){flash('✅ Nová akce uložena: '+name)}).catch(function(err){flash('Akci se nepodařilo uložit: '+(err&&err.message?err.message:err),true)});
 }
-function warnEvent(){
-  var el=document.getElementById('eventSelect')||document.getElementById('eventName');
-  if(el){el.classList.remove('needEvent');void el.offsetWidth;el.classList.add('needEvent');try{el.focus()}catch(e){}}
-  flash('⚠ Nejdřív vyber akci',true);
-}
+function warnEvent(){var el=document.getElementById('eventSelect')||document.getElementById('eventName');if(el){el.classList.remove('needEvent');void el.offsetWidth;el.classList.add('needEvent');try{el.focus()}catch(e){}}flash('⚠ Nejdřív vyber akci',true)}
 function clearEventWarn(){var el=document.getElementById('eventSelect')||document.getElementById('eventName');if(el)el.classList.remove('needEvent')}
 installEventSelector();
 setInterval(function(){
-  var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')}).join('|')+'|current:'+currentEventId+'|name:'+getEventName();
+  var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')+':'+(e.status||'')}).join('|')+'|current:'+currentEventId+'|name:'+getEventName();
   if(sig!==_eventUiSig){_eventUiSig=sig;renderEventSelector()}
 },500);
 
-/* v44: visual modules load after the functional v43 modules. */
-(function(){
-  function load(src,done){var s=document.createElement('script');s.src=src+'?v=44';s.onload=done||null;document.body.appendChild(s)}
-  load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')});
-})();
+/* V44/V45 visual modules load after the functional modules. */
+(function(){function load(src,done){var s=document.createElement('script');s.src=src+'?v=44';s.onload=done||null;document.body.appendChild(s)}load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')})})();
