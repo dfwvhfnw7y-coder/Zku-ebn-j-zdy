@@ -1,10 +1,10 @@
-/* ── V44 final presentation: QR + history ── */
+/* ── V45 final presentation: QR + history ── */
 (function(){
   function e44(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
   function customerLine(c){if(typeof c!=='object')return{n:c||'',d:''};var d=[c.email||'',c.phone||''].filter(Boolean).join(' · ');return{n:c.name||'',d:d}}
   function installHeadings(){
     var gen=document.getElementById('panelGen');
-    if(gen&&!document.getElementById('v44QrHead')){var h=document.createElement('div');h.id='v44QrHead';h.className='v44-section-head';h.innerHTML='<div><h2>QR kódy</h2><p>Vozidla a zákazníci pro rychlé párování</p></div><span class="mini">v44</span>';gen.insertBefore(h,gen.firstChild)}
+    if(gen&&!document.getElementById('v44QrHead')){var h=document.createElement('div');h.id='v44QrHead';h.className='v44-section-head';h.innerHTML='<div><h2>QR kódy</h2><p>Vozidla a zákazníci pro rychlé párování</p></div><span class="mini">v45</span>';gen.insertBefore(h,gen.firstChild)}
     var log=document.getElementById('panelLog');
     if(log&&!document.getElementById('v44HistoryHead')){var x=document.createElement('div');x.id='v44HistoryHead';x.className='v44-history-title';x.innerHTML='<h2>Historie</h2><p>Jízdy právě vybrané akce</p>';log.insertBefore(x,log.firstChild)}
   }
@@ -23,6 +23,6 @@
   };
   var oldSwitch=window.switchTab;
   window.switchTab=function(id){oldSwitch(id);if(id==='gen')decorateQrCards();if(id==='log')renderLog()};
-  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-polish.css';document.head.appendChild(l);installHeadings();decorateQrCards();installCardPrintPicker();renderLog()}
+  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-polish.css?v=45';document.head.appendChild(l);installHeadings();decorateQrCards();installCardPrintPicker();renderLog()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
