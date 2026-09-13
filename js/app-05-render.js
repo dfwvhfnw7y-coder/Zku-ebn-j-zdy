@@ -7,54 +7,13 @@ function fmtDur(a,b){if(!a||!b)return'';var m=Math.max(0,Math.round((new Date(b)
 function fmtRunning(a){return a?fmtDur(a,new Date().toISOString()):''}
 function rideNames(r){var cs=r&&r.customers?r.customers:[],a=[];for(var i=0;i<cs.length;i++)a.push(custName(cs[i])||'Zákazník');return a}
 
-function renderActive(){
-  var a=getActiveRides(),el=document.getElementById('activeSection');if(!a.length){el.innerHTML='';return}
-  var h='<section class="v45-active-block"><div class="v45-active-head"><div><small>PROVOZ</small><h3><span class="v45-live-dot"></span>Právě jede <b>'+a.length+'</b></h3></div>'+(a.length>1?'<button class="v45-end-all" onclick="endAllRides()">Ukončit vše</button>':'')+'</div><div class="v45-active-grid">';
-  for(var i=0;i<a.length;i++){
-    var r=a[i],names=rideNames(r),who=names.join(', ')||'Bez zákazníka';
-    h+='<article class="active-card v45-active-card"><button type="button" class="v45-active-detail" onclick="openRideDetail(\''+r._key+'\')" aria-label="Detail jízdy"><div class="v45-active-main"><div class="v45-active-car">'+esc(r.car||'Vozidlo')+'</div><div class="v45-active-person">👤 '+esc(who)+'</div><div class="v45-active-meta"><span>Od '+esc(fmtClock(r.start))+'</span><span>'+esc(fmtRunning(r.start))+'</span></div></div><span class="v45-active-more">•••</span></button><button class="end-btn v45-end-ride" onclick="endRide(\''+r._key+'\')">Ukončit</button></article>';
-  }
-  h+='</div></section>';el.innerHTML=h;
-}
-
-function ensureRideDetail(){
-  if(document.getElementById('v45RideDetail'))return;
-  var m=document.createElement('div');m.id='v45RideDetail';m.className='v45-ride-modal';
-  m.innerHTML='<div class="v45-ride-sheet"><div class="v45-ride-head"><div><small>Detail jízdy</small><h3 id="v45RideCar">Vozidlo</h3></div><button type="button" id="v45RideClose">✕</button></div><div class="v45-ride-detail" id="v45RideInfo"></div><button type="button" class="v45-ride-delete" id="v45RideDelete">🗑 Smazat záznam jízdy</button></div>';
-  document.body.appendChild(m);document.getElementById('v45RideClose').onclick=closeRideDetail;m.onclick=function(e){if(e.target===m)closeRideDetail()};
-}
+function renderActive(){var a=getActiveRides(),el=document.getElementById('activeSection');if(!a.length){el.innerHTML='';return}var h='<section class="v45-active-block"><div class="v45-active-head"><div><small>PROVOZ</small><h3><span class="v45-live-dot"></span>Právě jede <b>'+a.length+'</b></h3></div>'+(a.length>1?'<button class="v45-end-all" onclick="endAllRides()">Ukončit vše</button>':'')+'</div><div class="v45-active-grid">';for(var i=0;i<a.length;i++){var r=a[i],names=rideNames(r),who=names.join(', ')||'Bez zákazníka';h+='<article class="active-card v45-active-card"><button type="button" class="v45-active-detail" onclick="openRideDetail(\''+r._key+'\')" aria-label="Detail jízdy"><div class="v45-active-main"><div class="v45-active-car">'+esc(r.car||'Vozidlo')+'</div><div class="v45-active-person">👤 '+esc(who)+'</div><div class="v45-active-meta"><span>Od '+esc(fmtClock(r.start))+'</span><span>'+esc(fmtRunning(r.start))+'</span></div></div><span class="v45-active-more">•••</span></button><button class="end-btn v45-end-ride" onclick="endRide(\''+r._key+'\')">Ukončit</button></article>'}h+='</div></section>';el.innerHTML=h}
+function ensureRideDetail(){if(document.getElementById('v45RideDetail'))return;var m=document.createElement('div');m.id='v45RideDetail';m.className='v45-ride-modal';m.innerHTML='<div class="v45-ride-sheet"><div class="v45-ride-head"><div><small>Detail jízdy</small><h3 id="v45RideCar">Vozidlo</h3></div><button type="button" id="v45RideClose">✕</button></div><div class="v45-ride-detail" id="v45RideInfo"></div><button type="button" class="v45-ride-delete" id="v45RideDelete">🗑 Smazat záznam jízdy</button></div>';document.body.appendChild(m);document.getElementById('v45RideClose').onclick=closeRideDetail;m.onclick=function(e){if(e.target===m)closeRideDetail()}}
 var _v45RideKey='';
-function findRideByDetailKey(key){for(var i=0;i<rides.length;i++)if(rides[i]._key===key)return rides[i];return null}
-function openRideDetail(key){
-  ensureRideDetail();var r=findRideByDetailKey(key),m=document.getElementById('v45RideDetail');if(!r||!m)return;_v45RideKey=key;
-  document.getElementById('v45RideCar').textContent=r.car||'Vozidlo';
-  var names=rideNames(r);
-  var rows='<div><span>Zákazník</span><strong>'+esc(names.join(', ')||'Bez zákazníka')+'</strong></div><div><span>Začátek</span><strong>'+esc(fmtTime(r.start))+'</strong></div><div><span>Konec</span><strong>'+(r.end?esc(fmtTime(r.end)):'Probíhá')+'</strong></div>'+(r.end?'<div><span>Délka</span><strong>'+esc(fmtDur(r.start,r.end))+'</strong></div>':'');
-  document.getElementById('v45RideInfo').innerHTML=rows;
-  var del=document.getElementById('v45RideDelete');del.textContent=r.end?'🗑 Smazat záznam jízdy':'🗑 Smazat chybnou jízdu';del.onclick=function(){deleteRideRecord(key)};
-  m.classList.add('show');
-}
+function findRideByDetailKey(key){for(var i=0;i<rides.length;i++)if(rides[i]._key===key)return rides[i];if(typeof _pendingRide!=='undefined'&&_pendingRide&&_pendingRide._key===key)return _pendingRide;return null}
+function openRideDetail(key){ensureRideDetail();var r=findRideByDetailKey(key),m=document.getElementById('v45RideDetail');if(!r||!m)return;_v45RideKey=key;document.getElementById('v45RideCar').textContent=r.car||'Vozidlo';var names=rideNames(r);var rows='<div><span>Zákazník</span><strong>'+esc(names.join(', ')||'Bez zákazníka')+'</strong></div><div><span>Začátek</span><strong>'+esc(fmtTime(r.start))+'</strong></div><div><span>Konec</span><strong>'+(r.end?esc(fmtTime(r.end)):'Probíhá')+'</strong></div>'+(r.end?'<div><span>Délka</span><strong>'+esc(fmtDur(r.start,r.end))+'</strong></div>':'');document.getElementById('v45RideInfo').innerHTML=rows;var del=document.getElementById('v45RideDelete');del.textContent=r.end?'🗑 Smazat záznam jízdy':'🗑 Smazat chybnou jízdu';del.onclick=function(){deleteRideRecord(key)};m.classList.add('show')}
 function closeRideDetail(){var m=document.getElementById('v45RideDetail');if(m)m.classList.remove('show');_v45RideKey=''}
-function deleteRideRecord(key){
-  var r=findRideByDetailKey(key);if(!r)return;
-  var who=(r.customers&&r.customers.length)?custName(r.customers[0]):'bez zákazníka',active=!r.end;
-  var question=active?'Tato jízda právě probíhá. Smazat ji jako chybně spuštěnou?':'Opravdu smazat tento záznam jízdy?';
-  if(!confirm(question+'\n\n'+(r.car||'Vozidlo')+' · '+who+' · '+fmtTime(r.start)+'\n\nZáznam zmizí z historie i statistik. Tuto akci nelze vrátit zpět.'))return;
-  var job=(fbReady&&ridesRef)?ridesRef.child(key).remove():fbRest('DELETE','rides/'+key);
-  Promise.resolve(job).then(function(){closeRideDetail();if(!(fbReady&&ridesRef)){for(var i=rides.length-1;i>=0;i--)if(rides[i]._key===key)rides.splice(i,1);renderAll()}flash(active?'🗑 Chybná jízda smazána':'🗑 Záznam jízdy smazán')}).catch(function(err){flash('Záznam se nepodařilo smazat: '+(err&&err.message?err.message:err),true)});
-}
-
-function renderLog(){
-  var q=(document.getElementById('logSearch')?document.getElementById('logSearch').value:'').toLowerCase(),el=document.getElementById('logList'),f=[],all=getEventRides();
-  for(var i=0;i<all.length;i++){var r=all[i];if(!q){f.push(r);continue}if((r.car||'').toLowerCase().indexOf(q)>=0){f.push(r);continue}var cs=r.customers||[];for(var j=0;j<cs.length;j++)if(custName(cs[j]).toLowerCase().indexOf(q)>=0){f.push(r);break}}
-  f.sort(function(a,b){return new Date(b.start||0)-new Date(a.start||0)});
-  if(!f.length){el.innerHTML='<div class="empty"><div class="ico">📋</div><p>Žádné záznamy pro tuto akci</p></div>';return}
-  var h='<div class="v45-history-list">';
-  for(var x=0;x<f.length;x++){
-    var rr=f[x],names=rideNames(rr),who=names.join(', ')||'Bez zákazníka';
-    h+='<button type="button" class="ride v45-ride-row" onclick="openRideDetail(\''+rr._key+'\')"><span class="v45-history-time"><b>'+esc(fmtClock(rr.start))+'</b><small>'+esc(fmtDay(rr.start))+'</small></span><span class="v45-history-copy"><strong>'+esc(rr.car||'Vozidlo')+'</strong><small>👤 '+esc(who)+'</small></span><span class="v45-history-state">'+(rr.end?'<b>'+esc(fmtDur(rr.start,rr.end))+'</b>':'<b class="live">PROBÍHÁ</b>')+(rr.surveySent?'<small>✉</small>':'')+'<i>›</i></span></button>';
-  }
-  h+='</div>';el.innerHTML=h;
-}
+function deleteRideRecord(key){var r=findRideByDetailKey(key);if(!r)return;var who=(r.customers&&r.customers.length)?custName(r.customers[0]):'bez zákazníka',active=!r.end;var question=active?'Tato jízda právě probíhá. Smazat ji jako chybně spuštěnou?':'Opravdu smazat tento záznam jízdy?';if(!confirm(question+'\n\n'+(r.car||'Vozidlo')+' · '+who+' · '+fmtTime(r.start)+'\n\nZáznam zmizí z historie i statistik. Tuto akci nelze vrátit zpět.'))return;var oldIndex=-1,oldPending=null;for(var i=0;i<rides.length;i++)if(rides[i]._key===key){oldIndex=i;rides.splice(i,1);break}if(typeof _pendingRide!=='undefined'&&_pendingRide&&_pendingRide._key===key){oldPending=_pendingRide;_pendingRide=null}closeRideDetail();renderAll();flash('Mažu jízdu…');var job=(fbReady&&ridesRef)?ridesRef.child(key).remove():fbRest('DELETE','rides/'+key);Promise.resolve(job).then(function(){flash(active?'🗑 Chybná jízda smazána':'🗑 Záznam jízdy smazán')}).catch(function(err){if(oldIndex>=0&&!findRideByDetailKey(key))rides.splice(Math.min(oldIndex,rides.length),0,r);if(oldPending&&typeof _pendingRide!=='undefined'&&!_pendingRide)_pendingRide=oldPending;renderAll();flash('Záznam se nepodařilo smazat: '+(err&&err.message?err.message:err),true)})}
+function renderLog(){var q=(document.getElementById('logSearch')?document.getElementById('logSearch').value:'').toLowerCase(),el=document.getElementById('logList'),f=[],all=getEventRides();for(var i=0;i<all.length;i++){var r=all[i];if(!q){f.push(r);continue}if((r.car||'').toLowerCase().indexOf(q)>=0){f.push(r);continue}var cs=r.customers||[];for(var j=0;j<cs.length;j++)if(custName(cs[j]).toLowerCase().indexOf(q)>=0){f.push(r);break}}f.sort(function(a,b){return new Date(b.start||0)-new Date(a.start||0)});if(!f.length){el.innerHTML='<div class="empty"><div class="ico">📋</div><p>Žádné záznamy pro tuto akci</p></div>';return}var h='<div class="v45-history-list">';for(var x=0;x<f.length;x++){var rr=f[x],names=rideNames(rr),who=names.join(', ')||'Bez zákazníka';h+='<button type="button" class="ride v45-ride-row" onclick="openRideDetail(\''+rr._key+'\')"><span class="v45-history-time"><b>'+esc(fmtClock(rr.start))+'</b><small>'+esc(fmtDay(rr.start))+'</small></span><span class="v45-history-copy"><strong>'+esc(rr.car||'Vozidlo')+'</strong><small>👤 '+esc(who)+'</small></span><span class="v45-history-state">'+(rr.end?'<b>'+esc(fmtDur(rr.start,rr.end))+'</b>':'<b class="live">PROBÍHÁ</b>')+(rr.surveySent?'<small>✉</small>':'')+'<i>›</i></span></button>'}h+='</div>';el.innerHTML=h}
 function updateBadge(){var t=new Date().toDateString(),c=0,all=getEventRides();for(var i=0;i<all.length;i++)if(new Date(all[i].start).toDateString()===t)c++;document.getElementById('countBadge').textContent=c}
 function renderAll(){renderActive();renderLog();updateBadge()}
