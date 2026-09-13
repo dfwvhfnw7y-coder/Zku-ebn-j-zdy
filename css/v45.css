@@ -1,0 +1,31 @@
+/* ── V45 polish layer ── */
+body.v44-ready #verBadge{color:#bff8ff!important}
+
+/* Selected customer stays visible while the operator scrolls the fleet. */
+body.v44-ready .v44-pending.show{position:sticky;top:132px;z-index:31;box-shadow:0 10px 28px rgba(0,0,0,.32);backdrop-filter:blur(14px)}
+
+/* Event control: keep destructive/administrative actions away from the main flow. */
+body.v44-ready #eventManageBtn{font-size:15px!important;letter-spacing:1px}
+body.v44-ready #eventManageBtn:disabled{opacity:.35;cursor:default}
+.v45-event-modal,.v45-ride-modal{position:fixed;inset:0;z-index:160;background:rgba(1,7,10,.78);display:none;align-items:flex-end;justify-content:center;padding:14px}
+.v45-event-modal.show,.v45-ride-modal.show{display:flex}
+.v45-event-sheet,.v45-ride-sheet{width:min(100%,480px);background:#0d1920;border:1px solid #314a56;border-radius:20px;padding:15px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.v45-event-head,.v45-ride-head{display:flex;align-items:flex-start;justify-content:space-between;padding:3px 3px 13px}
+.v45-event-head small,.v45-ride-head small{display:block;color:#81959e;font-size:9px;text-transform:uppercase;letter-spacing:.13em;margin-bottom:4px}
+.v45-event-head h3,.v45-ride-head h3{margin:0;font-family:var(--v44-display,Georgia,serif);font-size:23px;font-weight:400}
+.v45-event-head>button,.v45-ride-head>button{width:36px;height:36px;border-radius:50%;border:1px solid #314a56;background:#12222b;color:#d5e0e5;font:inherit;cursor:pointer}
+.v45-event-meta{margin:0 3px 8px;color:#8fa3ad;font-size:10px}
+.v45-event-action{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:0;border-top:1px solid #21353f;background:transparent;color:#eef4f6;padding:15px 6px;font:inherit;cursor:pointer}
+.v45-event-action>span{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:#142730;font-size:18px}
+.v45-event-action strong{display:block;font-size:13px}.v45-event-action small{display:block;color:#859aa4;font-size:9px;margin-top:3px;line-height:1.4}
+.v45-event-action.archive{color:#ffd59a}.v45-event-action.archive>span{background:#2c2214}.v45-event-action.restore{color:#bff8ff}.v45-event-action.restore>span{background:#102a31}
+
+/* History becomes a simple drill-down list. Delete exists only inside the detail. */
+.v45-ride-row{cursor:pointer;transition:border-color .12s,transform .12s}.v45-ride-row:active{transform:scale(.99);border-color:#3b5a67!important}.v45-detail-arrow{font-size:22px;line-height:10px;color:#8fa4ad;vertical-align:-2px;margin-left:4px}
+.v45-ride-detail{border-top:1px solid #21353f;margin-top:2px}
+.v45-ride-detail>div{display:flex;justify-content:space-between;gap:16px;padding:12px 3px;border-bottom:1px solid #1d3039}
+.v45-ride-detail span{font-size:10px;color:#879aa3}.v45-ride-detail strong{font-size:12px;color:#eef4f6;text-align:right;font-weight:600}
+.v45-ride-delete{width:100%;margin-top:16px;border:1px solid #63313b;border-radius:12px;background:#251317;color:#ff8290;padding:12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+
+@media(min-width:760px){.v45-event-modal,.v45-ride-modal{align-items:center}.v45-event-sheet,.v45-ride-sheet{max-width:420px}}
+@media(max-width:420px){body.v44-ready .v44-pending.show{top:132px}.v45-event-modal,.v45-ride-modal{padding:10px}.v45-event-sheet,.v45-ride-sheet{border-radius:18px}}
