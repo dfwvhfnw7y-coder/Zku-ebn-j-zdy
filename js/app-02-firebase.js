@@ -34,6 +34,12 @@ function initApp(){
   eventsRef.on('value',function(snapshot){
     var data=snapshot.val();events=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var e=data[keys[i]];if(!e||!e.name)continue;e._key=keys[i];events.push(e)}}
+    /* Critical after PIN unlock: event UI was already rendered before auth.
+       Re-render now that Firebase events really exist, then wake the fleet
+       listener for the restored event. */
+    if(typeof renderEventSelector==='function')renderEventSelector();
+    if(currentEventId&&typeof selectEventById==='function')selectEventById(currentEventId,false);
+    if(typeof window.v44FleetReload==='function')window.v44FleetReload();
   });
   db.ref('.info/connected').on('value',function(snap){document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}'});
   if(_hasUrlParams){
