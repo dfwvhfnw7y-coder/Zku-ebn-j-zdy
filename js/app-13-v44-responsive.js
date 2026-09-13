@@ -9,7 +9,8 @@
   var oldRenderActive=window.renderActive;if(oldRenderActive)window.renderActive=function(){oldRenderActive();enhanceEmptyActive();removeLegacyFlow()};
   var oldV44State=window.renderV44State;if(oldV44State)window.renderV44State=function(){oldV44State();removeLegacyFlow()};
   var oldSwitch=window.switchTab;if(oldSwitch)window.switchTab=function(id){oldSwitch(id);updatePageTitle();window.scrollTo({top:0,behavior:'smooth'})};
-  function loadEventFleet(){if(window.__v45EventFleetLoaded)return;window.__v45EventFleetLoaded=true;var x=document.createElement('script');x.src='js/app-15-v44-event-fleet.js?v=45';document.body.appendChild(x)}
+  function loadFinalUi(){if(window.__v45FinalUiLoaded)return;window.__v45FinalUiLoaded=true;var f=document.createElement('script');f.src='js/app-16-v45-final-ui.js?v=45';document.body.appendChild(f)}
+  function loadEventFleet(){if(window.__v45EventFleetLoaded){loadFinalUi();return}window.__v45EventFleetLoaded=true;var x=document.createElement('script');x.src='js/app-15-v44-event-fleet.js?v=45';x.onload=loadFinalUi;document.body.appendChild(x)}
   function install(){loadCss();setNavA11y();updatePageTitle();removeLegacyFlow();enhanceEmptyActive();if(window.__v45FleetEarlyLoaded){loadEventFleet();return}var s=document.createElement('script');s.src='js/app-14-v44-fleet.js?v=45';s.onload=function(){window.__v45FleetEarlyLoaded=true;loadEventFleet()};document.body.appendChild(s)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   setInterval(removeLegacyFlow,1000);
