@@ -118,5 +118,5 @@ function runCustomerImport(){
   Promise.all(jobs).then(function(){flash('📥 Importováno '+todo.length+' zákazníků');closeCustomerImport();if(!fbReady)loadCustomersREST()}).catch(function(err){flash('Chyba importu: '+err.message,true)});
 }
 
-/* v44: load event selector with release cache key */
-(function(){var s=document.createElement('script');s.src='js/app-09-events-ui.js?v=44';document.body.appendChild(s)})();
+/* v45: load event selector with release cache key */
+(function(){var s=document.createElement('script');s.src='js/app-09-events-ui.js?v=45';document.body.appendChild(s)})();
