@@ -7,7 +7,7 @@
   function enhanceEmptyActive(){var el=document.getElementById('activeSection');if(!el||el.innerHTML.trim())return;el.innerHTML='<div class="v44-empty-active"><div class="icon">◇</div><strong>Žádná aktivní jízda</strong><small>Vyberte zákazníka a naskenujte vozidlo.</small></div>'}
   function removeLegacyFlow(){var f=document.getElementById('v44Flow');if(f&&f.parentNode)f.parentNode.removeChild(f)}
   var oldRenderActive=window.renderActive;if(oldRenderActive)window.renderActive=function(){oldRenderActive();enhanceEmptyActive();removeLegacyFlow()};
-  var oldV44State=window.renderV44State;if(oldV44State)window.renderV44State=function(){oldRenderV44();removeLegacyFlow()};
+  var oldV44State=window.renderV44State;if(oldV44State)window.renderV44State=function(){oldV44State();removeLegacyFlow()};
   var oldSwitch=window.switchTab;if(oldSwitch)window.switchTab=function(id){oldSwitch(id);updatePageTitle();window.scrollTo({top:0,behavior:'smooth'})};
   function loadV46Stability(){if(window.__v46StabilityLoaded)return;window.__v46StabilityLoaded=true;var x=document.createElement('script');x.src='js/app-20-v46-convoy-stability.js?v=46e';document.body.appendChild(x)}
   function loadV46PassengerMove(){if(window.__v46PassengerMoveLoaded){loadV46Stability();return}window.__v46PassengerMoveLoaded=true;var p=document.createElement('script');p.src='js/app-19-v46-convoy-passenger-move.js?v=46e';p.onload=loadV46Stability;document.body.appendChild(p)}
