@@ -9,7 +9,8 @@
   var oldRenderActive=window.renderActive;if(oldRenderActive)window.renderActive=function(){oldRenderActive();enhanceEmptyActive();removeLegacyFlow()};
   var oldV44State=window.renderV44State;if(oldV44State)window.renderV44State=function(){oldV44State();removeLegacyFlow()};
   var oldSwitch=window.switchTab;if(oldSwitch)window.switchTab=function(id){oldSwitch(id);updatePageTitle();window.scrollTo({top:0,behavior:'smooth'})};
-  function install(){loadCss();setNavA11y();updatePageTitle();removeLegacyFlow();enhanceEmptyActive();var s=document.createElement('script');s.src='js/app-14-v44-fleet.js?v=45';s.onload=function(){var x=document.createElement('script');x.src='js/app-15-v44-event-fleet.js?v=45';document.body.appendChild(x)};document.body.appendChild(s)}
+  function loadEventFleet(){if(window.__v45EventFleetLoaded)return;window.__v45EventFleetLoaded=true;var x=document.createElement('script');x.src='js/app-15-v44-event-fleet.js?v=45';document.body.appendChild(x)}
+  function install(){loadCss();setNavA11y();updatePageTitle();removeLegacyFlow();enhanceEmptyActive();if(window.__v45FleetEarlyLoaded){loadEventFleet();return}var s=document.createElement('script');s.src='js/app-14-v44-fleet.js?v=45';s.onload=function(){window.__v45FleetEarlyLoaded=true;loadEventFleet()};document.body.appendChild(s)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   setInterval(removeLegacyFlow,1000);
 })();
