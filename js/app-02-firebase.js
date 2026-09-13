@@ -15,11 +15,19 @@ try{
   fbReady=true;
 }catch(e){document.getElementById('syncStatus').textContent='\u{1F7E1}'}
 
-/* If this page was opened behind the PIN, visual/data modules may already
-   exist before anonymous auth is established. A one-time clean restart after
-   successful PIN auth gives the app the same reliable boot path as a manual
-   refresh (PIN stays unlocked in sessionStorage). */
 var _v45BootOpenedLocked=!!pinLocked;
+
+/* Fleet cards can arrive before or after rides. Keep their counters derived
+   from the authoritative rides array, independent of module load order. */
+function syncFleetRideStats(){
+  var cards=document.querySelectorAll('#v44FleetGrid .v44-vehicle');if(!cards.length)return;
+  function inEvent(r){var eid=currentEventId||'',ev=(document.getElementById('eventName')||{}).value||'';if(eid&&r.eventId)return r.eventId===eid;return !!ev&&r.event===ev}
+  var total=0,active=0,people={};
+  for(var i=0;i<rides.length;i++){var r=rides[i];if(!inEvent(r))continue;total++;if(!r.end)active++;var cs=r.customers||[];for(var j=0;j<cs.length;j++){var c=cs[j]||{},k=typeof c==='object'?((c.email||'').toLowerCase()||(c.phone||'').replace(/\s+/g,'')||(c.name||'').toLowerCase()):String(c).toLowerCase();if(k)people[k]=1}}
+  for(var x=0;x<cards.length;x++){var nameEl=cards[x].querySelector('.v44-vehicle-name'),countEl=cards[x].querySelector('.v45-ride-count');if(!nameEl||!countEl)continue;var name=nameEl.textContent.trim().toLowerCase(),n=0;for(var y=0;y<rides.length;y++){var rr=rides[y];if(inEvent(rr)&&String(rr.car||'').trim().toLowerCase()===name)n++}countEl.textContent=n+' '+(n===1?'jízda':(n>=2&&n<=4?'jízdy':'jízd'))}
+  var sum=document.getElementById('v45LiveSummary');if(sum)sum.innerHTML='<span><b>'+total+'</b> '+(total===1?'jízda':(total>=2&&total<=4?'jízdy':'jízd'))+'</span><i></i><span><b>'+Object.keys(people).length+'</b> zákazníků</span><i></i><span><b>'+active+'</b> vozů venku</span>';
+}
+function scheduleFleetStats(){setTimeout(syncFleetRideStats,0);setTimeout(syncFleetRideStats,250);setTimeout(syncFleetRideStats,900)}
 
 function initApp(){
   if(!db)return;
@@ -30,7 +38,7 @@ function initApp(){
     var data=snapshot.val();rides=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var r=data[keys[i]];if(!r||!r.car)continue;r._key=keys[i];rides.push(r)}rides.sort(function(a,b){return new Date(b.start)-new Date(a.start)})}
     renderAll();document.getElementById('syncStatus').textContent='\u{1F7E2}';_pendingRide=null;
-    maybeAdoptEvent();
+    maybeAdoptEvent();scheduleFleetStats();
   });
   customersRef.on('value',function(snapshot){
     var data=snapshot.val();regCustomers=[];
@@ -42,6 +50,7 @@ function initApp(){
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var e=data[keys[i]];if(!e||!e.name)continue;e._key=keys[i];events.push(e)}}
     if(typeof renderEventSelector==='function')renderEventSelector();
     if(currentEventId&&typeof selectEventById==='function')selectEventById(currentEventId,false);
+    scheduleFleetStats();
   });
   db.ref('.info/connected').on('value',function(snap){document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}'});
   if(_hasUrlParams){
