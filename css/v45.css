@@ -21,6 +21,7 @@ body.v44-ready #eventManageBtn:disabled{opacity:.35;cursor:default}
 .v45-event-action.archive{color:#ffd59a}.v45-event-action.archive>span{background:#2c2214}.v45-event-action.restore{color:#bff8ff}.v45-event-action.restore>span{background:#102a31}
 
 /* History becomes a simple drill-down list. Delete exists only inside the detail. */
+#panelLog button[onclick="clearAll()"]{display:none!important}
 .v45-ride-row{cursor:pointer;transition:border-color .12s,transform .12s}.v45-ride-row:active{transform:scale(.99);border-color:#3b5a67!important}.v45-detail-arrow{font-size:22px;line-height:10px;color:#8fa4ad;vertical-align:-2px;margin-left:4px}
 .v45-ride-detail{border-top:1px solid #21353f;margin-top:2px}
 .v45-ride-detail>div{display:flex;justify-content:space-between;gap:16px;padding:12px 3px;border-bottom:1px solid #1d3039}
