@@ -1,5 +1,28 @@
 /* ── v43 Event selector ── */
 var _eventUiSig='';
+
+/* V45 prep: remove the cold-start waterfall. The V44 modules are still executed
+   in the same order, but the browser starts downloading the remaining files
+   immediately so the fleet listener can bind much sooner after reopening. */
+(function prewarmV44(){
+  var assets=[
+    ['script','js/app-10-v44-ui.js?v=44'],
+    ['script','js/app-11-v44-screens.js?v=44'],
+    ['script','js/app-12-v44-polish.js?v=44'],
+    ['script','js/app-13-v44-responsive.js?v=44'],
+    ['script','js/app-14-v44-fleet.js?v=44'],
+    ['script','js/app-15-v44-event-fleet.js?v=44'],
+    ['style','css/v44-screens.css?v=44'],
+    ['style','css/v44-polish.css?v=44'],
+    ['style','css/v44-responsive.css?v=44'],
+    ['style','css/v44-fleet.css?v=44']
+  ];
+  assets.forEach(function(a){
+    if(document.querySelector('link[rel="preload"][href="'+a[1]+'"]'))return;
+    var l=document.createElement('link');l.rel='preload';l.href=a[1];l.as=a[0];document.head.appendChild(l);
+  });
+})();
+
 function sortEventsForPicker(list){
   return (list||[]).slice().sort(function(a,b){
     return (new Date(b.createdAt||0).getTime()||0)-(new Date(a.createdAt||0).getTime()||0);
