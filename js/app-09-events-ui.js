@@ -1,26 +1,30 @@
 /* ── V45 Event selector + safe event management ── */
 var _eventUiSig='';
 
-/* V45 prep: remove the cold-start waterfall. The V44 modules are still executed
-   in the same order, but the browser starts downloading the remaining files
-   immediately so the fleet listener can bind much sooner after reopening. */
-(function prewarmV44(){
+/* V45 prep: remove the cold-start waterfall. Scripts are preloaded while
+   presentation styles are attached as real stylesheets so preload detection
+   can never suppress the stylesheet itself. */
+(function prewarmV45(){
   var assets=[
-    ['script','js/app-10-v44-ui.js?v=44'],
-    ['script','js/app-11-v44-screens.js?v=44'],
-    ['script','js/app-12-v44-polish.js?v=44'],
-    ['script','js/app-13-v44-responsive.js?v=44'],
-    ['script','js/app-14-v44-fleet.js?v=44'],
-    ['script','js/app-15-v44-event-fleet.js?v=44'],
-    ['style','css/v44-screens.css?v=44'],
-    ['style','css/v44-polish.css?v=44'],
-    ['style','css/v44-responsive.css?v=44'],
-    ['style','css/v44-fleet.css?v=44'],
+    ['script','js/app-10-v44-ui.js?v=45'],
+    ['script','js/app-11-v44-screens.js?v=45'],
+    ['script','js/app-12-v44-polish.js?v=45'],
+    ['script','js/app-13-v44-responsive.js?v=45'],
+    ['script','js/app-14-v44-fleet.js?v=45'],
+    ['script','js/app-15-v44-event-fleet.js?v=45'],
+    ['style','css/v44-screens.css?v=45'],
+    ['style','css/v44-polish.css?v=45'],
+    ['style','css/v44-responsive.css?v=45'],
+    ['style','css/v44-fleet.css?v=45'],
     ['style','css/v45.css?v=45']
   ];
   assets.forEach(function(a){
+    if(a[0]==='style'){
+      if(document.querySelector('link[rel="stylesheet"][href="'+a[1]+'"]'))return;
+      var st=document.createElement('link');st.rel='stylesheet';st.href=a[1];document.head.appendChild(st);return;
+    }
     if(document.querySelector('link[rel="preload"][href="'+a[1]+'"]'))return;
-    var l=document.createElement('link');l.rel='preload';l.href=a[1];l.as=a[0];document.head.appendChild(l);
+    var l=document.createElement('link');l.rel='preload';l.href=a[1];l.as='script';document.head.appendChild(l);
   });
 })();
 
@@ -74,4 +78,4 @@ installEventSelector();
 setInterval(function(){var sig=events.map(function(e){return e._key+':'+(e.name||'')+':'+(e.createdAt||'')+':'+(e.status||'')}).join('|')+'|current:'+currentEventId+'|name:'+getEventName();if(sig!==_eventUiSig){_eventUiSig=sig;renderEventSelector()}},500);
 
 /* V44/V45 visual modules load after the functional modules. */
-(function(){function load(src,done){var s=document.createElement('script');s.src=src+'?v=44';s.onload=done||null;document.body.appendChild(s)}load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')})})();
+(function(){function load(src,done){var s=document.createElement('script');s.src=src+'?v=45';s.onload=done||null;document.body.appendChild(s)}load('js/app-10-v44-ui.js',function(){load('js/app-11-v44-screens.js')})})();
