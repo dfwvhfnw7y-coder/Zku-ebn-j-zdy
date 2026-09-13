@@ -1,4 +1,4 @@
-/* V46 stability: canonical visible active ride per physical car, no background DB mutation */
+/* V46 stability: canonical visible active ride per physical car, event-driven */
 (function(){
  function norm(s){return String(s||'').trim().toLowerCase()}
  function eid(){return typeof getCurrentEventId==='function'?getCurrentEventId():''}
@@ -7,5 +7,5 @@
  function canonicalActive(){var by={},out=[];if(typeof rides==='undefined'||!Array.isArray(rides))return out;for(var i=0;i<rides.length;i++){var r=rides[i];if(!r||r.end||!inEvent(r)||!r.car)continue;var k=norm(r.car),old=by[k];if(!old||new Date(r.start||0)>new Date(old.start||0))by[k]=r}Object.keys(by).forEach(function(k){out.push(by[k])});return out}
  function patchGetActive(){if(window.__v46CanonicalActive)return;window.__v46CanonicalActive=true;if(typeof window.getActiveRides==='function'){var old=window.getActiveRides;window.getActiveRides=function(){var raw=old.apply(this,arguments),by={},out=[];for(var i=0;i<raw.length;i++){var r=raw[i],k=norm(r&&r.car);if(!k)continue;if(!by[k]||new Date(r.start||0)>new Date(by[k].start||0))by[k]=r}Object.keys(by).forEach(function(k){out.push(by[k])});return out}}}
  function fleet(){var active=canonicalActive(),map={};for(var i=0;i<active.length;i++)map[norm(active[i].car)]=active[i];var cards=document.querySelectorAll('#v44FleetGrid .v44-vehicle');for(var j=0;j<cards.length;j++){var c=cards[j],n=c.querySelector('.v44-vehicle-name');if(!n)continue;var r=map[norm(n.textContent)],st=c.querySelector('.v44-fleet-status'),dr=c.querySelector('.v44-fleet-driver');c.classList.toggle('is-driving',!!r);if(st){st.classList.toggle('busy',!!r);st.classList.toggle('free',!r);st.textContent=r?'Právě jede':'Volné'}if(dr&&!dr.classList.contains('pending')){if(r){var d=r.customers&&r.customers[0];dr.textContent='👤 '+(d&&typeof d==='object'?(d.name||d.email||d.phone||'Řidič'):(d||'Řidič'))}else dr.textContent='Připraveno k jízdě'}}var sum=document.getElementById('v45LiveSummary');if(sum){var spans=sum.querySelectorAll('span');if(spans.length>=3){var b=spans[2].querySelector('b');if(b)b.textContent=active.length;var label=active.length===1?'vůz venku':(active.length>=2&&active.length<=4?'vozy venku':'vozů venku');var nodes=spans[2].childNodes;if(nodes.length)nodes[nodes.length-1].nodeValue=' '+label}}}
- patchGetActive();setInterval(fleet,200);setTimeout(fleet,50);setTimeout(fleet,500);
+ patchGetActive();window.v46PaintFleet=fleet;document.addEventListener('v46:sync',fleet);setTimeout(fleet,50);
 })();
