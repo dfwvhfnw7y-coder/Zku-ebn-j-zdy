@@ -1,7 +1,5 @@
-/* ── V45 final presentation: QR + history ── */
+/* ── V45 final presentation: QR polish without replacing V45 history logic ── */
 (function(){
-  function e44(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-  function customerLine(c){if(typeof c!=='object')return{n:c||'',d:''};var d=[c.email||'',c.phone||''].filter(Boolean).join(' · ');return{n:c.name||'',d:d}}
   function installHeadings(){
     var gen=document.getElementById('panelGen');
     if(gen&&!document.getElementById('v44QrHead')){var h=document.createElement('div');h.id='v44QrHead';h.className='v44-section-head';h.innerHTML='<div><h2>QR kódy</h2><p>Vozidla a zákazníci pro rychlé párování</p></div><span class="mini">v45</span>';gen.insertBefore(h,gen.firstChild)}
@@ -15,14 +13,8 @@
   }
   function fillCustomerQr(c){if(!c)return;var name=typeof c==='object'?(c.name||''):String(c),email=typeof c==='object'?(c.email||''):'',phone=typeof c==='object'?(c.phone||''):'',addr=typeof c==='object'?(c.addr||''):'';var map={genCustInput:name,genCustEmail:email,genCustPhone:phone,genCustAddr:addr,genCustOP:''};Object.keys(map).forEach(function(id){var el=document.getElementById(id);if(el)el.value=map[id]});generateQR('customer');setTimeout(function(){printQR('customer')},120)}
   function installCardPrintPicker(){var original=window.selectCustomerForRide;if(!original||original._v44CardPrint)return;function wrapped(name,email,phone,addr,op,startScanner){if(window.v44CardPrintMode){window.v44CardPrintMode=false;closeCustomerPicker();switchTab('gen');fillCustomerQr({name:name,email:email,phone:phone,addr:addr});return}return original(name,email,phone,addr,op,startScanner)}wrapped._v44CardPrint=true;window.selectCustomerForRide=wrapped}
-  window.renderLog=function(){
-    var q=(document.getElementById('logSearch')?document.getElementById('logSearch').value:'').toLowerCase(),el=document.getElementById('logList'),all=getEventRides(),f=[];if(!el)return;
-    for(var i=0;i<all.length;i++){var r=all[i],hit=!q||(r.car||'').toLowerCase().indexOf(q)>=0;if(!hit){var cs=r.customers||[];for(var j=0;j<cs.length;j++)if(custName(cs[j]).toLowerCase().indexOf(q)>=0){hit=true;break}}if(hit)f.push(r)}
-    if(!f.length){el.innerHTML='<div class="empty"><div class="ico">◷</div><p>Žádné záznamy pro tuto akci</p></div>';return}
-    var h='';for(var k=0;k<f.length;k++){var r=f[k],cs=r.customers||[],cl=cs.length?customerLine(cs[0]):{n:'Bez zákazníka',d:''};h+='<div class="v44-history-card"><div class="top"><div class="car">'+e44(r.car)+'</div><div class="time">'+e44(fmtTime(r.start))+'</div></div><div class="customer">👤 '+e44(cl.n)+(cl.d?'<small>'+e44(cl.d)+'</small>':'')+'</div><div class="bottom"><span class="duration">'+(r.end?e44(fmtDur(r.start,r.end)):'Probíhá od '+e44(fmtTime(r.start)))+'</span><span class="'+(r.end?'done':'live')+'">'+(r.end?'Dokončeno':'Probíhá')+'</span></div></div>'}el.innerHTML=h;
-  };
   var oldSwitch=window.switchTab;
-  window.switchTab=function(id){oldSwitch(id);if(id==='gen')decorateQrCards();if(id==='log')renderLog()};
-  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-polish.css?v=45';document.head.appendChild(l);installHeadings();decorateQrCards();installCardPrintPicker();renderLog()}
+  window.switchTab=function(id){oldSwitch(id);if(id==='gen')decorateQrCards();if(id==='log'&&typeof renderLog==='function')renderLog()};
+  function install(){var l=document.createElement('link');l.rel='stylesheet';l.href='css/v44-polish.css?v=45';document.head.appendChild(l);installHeadings();decorateQrCards();installCardPrintPicker();if(typeof renderLog==='function')renderLog()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
