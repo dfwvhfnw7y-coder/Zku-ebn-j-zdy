@@ -3,6 +3,10 @@ body.v44-ready #verBadge{color:#bff8ff!important}
 body.v44-ready .v44-flow{display:none!important}
 body.v44-ready .v44-pending.show{position:sticky;top:132px;z-index:31;box-shadow:0 10px 28px rgba(0,0,0,.32);backdrop-filter:blur(14px)}
 body.v44-ready #eventManageBtn{font-size:15px!important;letter-spacing:1px}body.v44-ready #eventManageBtn:disabled{opacity:.35;cursor:default}
+/* Event admin belongs in History. While those controls are still in the
+   event bar, keep them completely out of the layout so the event name gets
+   the available width. app-16 moves the same DOM nodes to History. */
+.event-bar #eventManageBtn,.event-bar #v45ArchiveListBtn{display:none!important}
 body.v44-ready #v45RefreshBtn{font-size:18px!important;line-height:1}body.v44-ready #v45RefreshBtn.is-refreshing{animation:v45spin .7s linear infinite}body.v44-ready #v45ArchiveListBtn{position:relative}body.v44-ready #v45ArchiveListBtn.has-items::after{content:'';position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:50%;background:#ffc66d;box-shadow:0 0 0 2px #102028}
 @keyframes v45spin{to{transform:rotate(360deg)}}
 #v45PullRefresh{position:fixed;left:50%;top:8px;z-index:260;transform:translate(-50%,-70px);opacity:0;padding:9px 14px;border-radius:999px;background:#10232c;border:1px solid #31505d;color:#bff8ff;font-size:10px;font-weight:800;pointer-events:none;transition:transform .16s ease,opacity .16s ease;box-shadow:0 10px 26px rgba(0,0,0,.35)}#v45PullRefresh.show{transform:translate(-50%,0);opacity:1}#v45PullRefresh.ready{background:#15362a;border-color:#356c50;color:#caffdb}
