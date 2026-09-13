@@ -15,6 +15,12 @@ try{
   fbReady=true;
 }catch(e){document.getElementById('syncStatus').textContent='\u{1F7E1}'}
 
+/* If this page was opened behind the PIN, visual/data modules may already
+   exist before anonymous auth is established. A one-time clean restart after
+   successful PIN auth gives the app the same reliable boot path as a manual
+   refresh (PIN stays unlocked in sessionStorage). */
+var _v45BootOpenedLocked=!!pinLocked;
+
 function initApp(){
   if(!db)return;
   ridesRef=db.ref('rides');
@@ -34,12 +40,8 @@ function initApp(){
   eventsRef.on('value',function(snapshot){
     var data=snapshot.val();events=[];
     if(data){var keys=Object.keys(data);for(var i=0;i<keys.length;i++){var e=data[keys[i]];if(!e||!e.name)continue;e._key=keys[i];events.push(e)}}
-    /* Critical after PIN unlock: event UI was already rendered before auth.
-       Re-render now that Firebase events really exist, then wake the fleet
-       listener for the restored event. */
     if(typeof renderEventSelector==='function')renderEventSelector();
     if(currentEventId&&typeof selectEventById==='function')selectEventById(currentEventId,false);
-    if(typeof window.v44FleetReload==='function')window.v44FleetReload();
   });
   db.ref('.info/connected').on('value',function(snap){document.getElementById('syncStatus').textContent=snap.val()?'\u{1F7E2}':'\u{1F534}'});
   if(_hasUrlParams){
@@ -57,7 +59,10 @@ function initApp(){
 }
 function doAuth(){
   if(!firebase.auth){initApp();return}
-  firebase.auth().signInAnonymously().then(function(){initApp()}).catch(function(e){console.warn('Auth:',e);initApp()});
+  firebase.auth().signInAnonymously().then(function(){
+    if(_v45BootOpenedLocked){_v45BootOpenedLocked=false;location.reload();return}
+    initApp();
+  }).catch(function(e){console.warn('Auth:',e);initApp()});
 }
 if(!pinLocked)doAuth();
 
