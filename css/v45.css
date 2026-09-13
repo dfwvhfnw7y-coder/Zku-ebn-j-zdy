@@ -1,5 +1,7 @@
 /* ── V45 polish layer ── */
 body.v44-ready #verBadge{color:#bff8ff!important}
+/* V45: the old 1 Customer / 2 Vehicle / 3 Ride progress strip is decorative and redundant. */
+body.v44-ready .flow{display:none!important}
 
 /* Selected customer stays visible while the operator scrolls the fleet. */
 body.v44-ready .v44-pending.show{position:sticky;top:132px;z-index:31;box-shadow:0 10px 28px rgba(0,0,0,.32);backdrop-filter:blur(14px)}
